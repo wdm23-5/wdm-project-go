@@ -23,23 +23,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_PAT }}
 
-      - name: build order
+      - name: build order and push to ghcr
         uses: docker/build-push-action@v4
         with:
           context: src
           file: src/order/Dockerfile
+          push: true
           tags: ghcr.io/${{ github.repository }}/order:latest
 
-      - name: build stock
+      - name: build stock and push to ghcr
         uses: docker/build-push-action@v4
         with:
           context: src
           file: src/stock/Dockerfile
+          push: true
           tags: ghcr.io/${{ github.repository }}/stock:latest
 
-      - name: build payment
+      - name: build payment and push to ghcr
         uses: docker/build-push-action@v4
         with:
           context: src
           file: src/payment/Dockerfile
+          push: true
           tags: ghcr.io/${{ github.repository }}/payment:latest
