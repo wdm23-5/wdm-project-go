@@ -27,19 +27,19 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: src
-          file: order/Dockerfile
+          file: src/order/Dockerfile
           tags: ghcr.io/${{ github.repository }}/order:latest
 
       - name: build stock
         uses: docker/build-push-action@v4
         with:
           context: src
-          file: stock/Dockerfile
+          file: src/stock/Dockerfile
           tags: ghcr.io/${{ github.repository }}/stock:latest
 
       - name: build payment
         uses: docker/build-push-action@v4
         with:
           context: src
-          file: payment/Dockerfile
+          file: src/payment/Dockerfile
           tags: ghcr.io/${{ github.repository }}/payment:latest
