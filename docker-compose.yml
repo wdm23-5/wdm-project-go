@@ -9,11 +9,15 @@ services:
       - "8000:80"
 
   order-service:
-    build: ./order
+    build:
+      context: src
+      dockerfile: order/Dockerfile
+    command: ./order-gin
     image: order:latest
     environment:
       - GATEWAY_URL=http://gateway:80
-    command: gunicorn -b 0.0.0.0:5000 app:app -w 1 --timeout 10
+      # - GIN_MODE=release
+      - MACHINE_ID=1
     env_file:
       - env/order_redis.env
 
@@ -22,9 +26,15 @@ services:
     command: redis-server --requirepass redis --maxmemory 512mb
 
   stock-service:
-    build: ./stock
+    build:
+      context: src
+      dockerfile: stock/Dockerfile
+    command: ./stock-gin
     image: stock:latest
-    command: gunicorn -b 0.0.0.0:5000 app:app -w 1 --timeout 10
+    environment:
+      - GATEWAY_URL=http://gateway:80
+      # - GIN_MODE=release
+      - MACHINE_ID=1
     env_file:
       - env/stock_redis.env
 
@@ -33,9 +43,15 @@ services:
     command: redis-server --requirepass redis --maxmemory 512mb
 
   payment-service:
-    build: ./payment
+    build:
+      context: src
+      dockerfile: payment/Dockerfile
+    command: ./payment-gin
     image: user:latest
-    command: gunicorn -b 0.0.0.0:5000 app:app -w 1 --timeout 10
+    environment:
+      - GATEWAY_URL=http://gateway:80
+      # - GIN_MODE=release
+      - MACHINE_ID=1
     env_file:
       - env/payment_redis.env
 
