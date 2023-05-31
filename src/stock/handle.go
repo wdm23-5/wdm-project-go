@@ -51,7 +51,7 @@ func findItem(ctx *gin.Context) {
 	}
 	price, err := strconv.Atoi(priceStr)
 	if err != nil {
-		ctx.String(http.StatusBadRequest, "findItem: %v", err)
+		ctx.String(http.StatusNotAcceptable, "findItem: %v", err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func findItem(ctx *gin.Context) {
 	}
 	stock, err := strconv.Atoi(stockStr)
 	if err != nil {
-		ctx.String(http.StatusBadRequest, "findItem: %v", err)
+		ctx.String(http.StatusNotAcceptable, "findItem: %v", err)
 		return
 	}
 
