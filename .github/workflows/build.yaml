@@ -31,14 +31,6 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/order:latest
 
-      - name: build stock and push to ghcr
-        uses: docker/build-push-action@v4
-        with:
-          context: src
-          file: src/stock/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository }}/stock:latest
-
       - name: build payment and push to ghcr
         uses: docker/build-push-action@v4
         with:
@@ -46,3 +38,11 @@ jobs:
           file: src/payment/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/payment:latest
+
+      - name: build stock and push to ghcr
+        uses: docker/build-push-action@v4
+        with:
+          context: src
+          file: src/stock/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/stock:latest
