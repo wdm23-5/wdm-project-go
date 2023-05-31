@@ -17,7 +17,7 @@ func Main() {
 	rdb = newRedisDB()
 
 	router := gin.New()
-	router.Use(gin.Logger())
+	common.DEffect(func() { router.Use(common.GinLogger()) })
 
 	router.GET("/ping", func(ctx *gin.Context) {
 		sb := strings.Builder{}
@@ -25,7 +25,7 @@ func Main() {
 		sb.WriteString(" order sf: ")
 		sb.WriteString(snowGen.Next().String())
 		sb.WriteString(" redis: ")
-		pong, err := rdb.ping(ctx).Result()
+		pong, err := rdb.Ping(ctx).Result()
 		if err != nil {
 			sb.WriteString(err.Error())
 		} else {
@@ -35,7 +35,7 @@ func Main() {
 	})
 
 	router.DELETE("/drop-database", func(ctx *gin.Context) {
-		rdb.flushDB(ctx)
+		rdb.FlushDB(ctx)
 		ctx.Status(http.StatusOK)
 	})
 

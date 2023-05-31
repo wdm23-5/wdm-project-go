@@ -1,14 +1,13 @@
 package order
 
 import (
-	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"wdm/common"
 )
 
 type redisDB struct {
-	rdb *redis.Client
+	redis.Client
 }
 
 func newRedisDB() *redisDB {
@@ -18,13 +17,7 @@ func newRedisDB() *redisDB {
 		DB:       common.MustS2I(common.MustGetEnv("REDIS_DB")),
 	})
 
-	return &redisDB{rdb: rdb}
-}
-
-func (rdb *redisDB) ping(ctx context.Context) *redis.StatusCmd {
-	return rdb.rdb.Ping(ctx)
-}
-
-func (rdb *redisDB) flushDB(ctx context.Context) {
-	rdb.rdb.FlushDB(ctx)
+	return &redisDB{
+		Client: *rdb,
+	}
 }
