@@ -15,6 +15,8 @@ func NowString() string {
 	return fmt.Sprintf("[%02v:%02v:%03v]", now.Minute(), now.Second(), now.UnixMilli()%1000)
 }
 
+// ------- ping handler -------
+
 type Pingable interface {
 	Ping(ctx context.Context) *redis.StatusCmd
 }
