@@ -1,6 +1,7 @@
 package order
 
 import (
+	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"wdm/common"
@@ -8,6 +9,7 @@ import (
 
 type redisDB struct {
 	redis.Client
+	rsHDecrIfGe0XX *redis.Script
 }
 
 func newRedisDB() *redisDB {
@@ -18,6 +20,11 @@ func newRedisDB() *redisDB {
 	})
 
 	return &redisDB{
-		Client: *rdb,
+		Client:         *rdb,
+		rsHDecrIfGe0XX: redis.NewScript(luaHDecrIfGe0XX),
 	}
+}
+
+func (rdb *redisDB) HDecrIfGe0XX(ctx context.Context, key, field string) *redis.Cmd {
+	return rdb.rsHDecrIfGe0XX.Run(ctx, rdb.Client, []string{key}, field)
 }
