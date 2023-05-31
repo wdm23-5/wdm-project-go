@@ -35,5 +35,5 @@ func Main() {
 		ctx.Status(http.StatusOK)
 	})
 
-	_ = router.Run("order-service:5000")
+	_ = router.Run("0.0.0.0:5000")
 }
