@@ -5,6 +5,8 @@ import (
 	"strconv"
 )
 
+// the must functions should only be used during the setup
+
 func MustS2I(s string) int {
 	i, e := strconv.Atoi(s)
 	if e != nil {

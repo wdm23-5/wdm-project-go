@@ -1,37 +1,41 @@
 package order
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"net/http"
+	"strings"
 	"wdm/common"
 )
 
 var gatewayUrl string
 var snowGen *common.SnowflakeGenerator
-var rdb *redis.Client
+var rdb *redisDB
 
 func Main() {
 	gatewayUrl = common.MustGetEnv("GATEWAY_URL")
-
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
-
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", common.MustGetEnv("REDIS_HOST"), common.MustGetEnv("REDIS_PORT")),
-		Password: common.MustGetEnv("REDIS_PASSWORD"),
-		DB:       common.MustS2I(common.MustGetEnv("REDIS_DB")),
-	})
+	rdb = newRedisDB()
 
 	router := gin.New()
 	router.Use(gin.Logger())
 
 	router.GET("/ping", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, common.NowString()+" order "+snowGen.Next().String())
+		sb := strings.Builder{}
+		sb.WriteString(common.NowString())
+		sb.WriteString(" order sf: ")
+		sb.WriteString(snowGen.Next().String())
+		sb.WriteString(" redis: ")
+		pong, err := rdb.ping(ctx).Result()
+		if err != nil {
+			sb.WriteString(err.Error())
+		} else {
+			sb.WriteString(pong)
+		}
+		ctx.String(http.StatusOK, sb.String())
 	})
 
 	router.DELETE("/drop-database", func(ctx *gin.Context) {
-		rdb.FlushDB(ctx)
+		rdb.flushDB(ctx)
 		ctx.Status(http.StatusOK)
 	})
 

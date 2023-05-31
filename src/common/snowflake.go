@@ -1,8 +1,12 @@
 package common
 
 import (
+	"errors"
 	"fmt"
+	"math"
+	"regexp"
 	"runtime"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -52,6 +56,29 @@ type SnowflakeID struct {
 	timestamp int64
 	machineId uint16
 	sequence  uint16
+}
+
+var makeSnowflakeIDError = errors.New("MakeSnowflakeID")
+
+func MakeSnowflakeID(s string) (SnowflakeID, error) {
+	regex := regexp.MustCompile(`t(\d+)m(\d+)s(\d+)`)
+	match := regex.FindStringSubmatch(s)
+	if len(match) != 4 {
+		return SnowflakeID{}, makeSnowflakeIDError
+	}
+	timestamp, err := strconv.ParseInt(match[1], 10, 64)
+	if err != nil || timestamp < 0 {
+		return SnowflakeID{}, makeSnowflakeIDError
+	}
+	machineId, err := strconv.ParseUint(match[2], 10, 16)
+	if err != nil || machineId > math.MaxUint16 {
+		return SnowflakeID{}, makeSnowflakeIDError
+	}
+	sequence, err := strconv.ParseUint(match[3], 10, 16)
+	if err != nil || sequence > math.MaxUint16 {
+		return SnowflakeID{}, makeSnowflakeIDError
+	}
+	return SnowflakeID{timestamp: timestamp, machineId: uint16(machineId), sequence: uint16(sequence)}, nil
 }
 
 // since redis stores int as string, this implementation directly uses string as id
