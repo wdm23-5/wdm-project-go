@@ -1,33 +1,30 @@
 package payment
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"wdm/common"
 )
 
-var gatewayUrl string
 var snowGen *common.SnowflakeGenerator
-var rdb *redis.Client
+var rdb *redisDB
 
 func Main() {
-	gatewayUrl = common.MustGetEnv("GATEWAY_URL")
-
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
-
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", common.MustGetEnv("REDIS_HOST"), common.MustGetEnv("REDIS_PORT")),
-		Password: common.MustGetEnv("REDIS_PASSWORD"),
-		DB:       common.MustS2I(common.MustGetEnv("REDIS_DB")),
-	})
+	rdb = newRedisDB()
 
 	router := gin.New()
-	router.Use(gin.Logger())
+	common.DEffect(func() { router.Use(common.GinLogger()) })
+
+	router.POST("/create_user", createUser)
+	router.GET("/find_user/:user_id", findUser)
+	router.POST("/add_funds/:user_id/:amount", addCredit)
+	router.POST("/pay/:user_id/:order_id/:amount", removeCredit)
+	router.POST("/cancel/:user_id/:order_id", cancelPayment)
+	router.GET("/status/:user_id/:order_id", paymentStatus)
 
 	router.GET("/ping", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, common.NowString()+" payment "+snowGen.Next().String())
+		common.GinPingHandler(ctx, "payment", snowGen, rdb)
 	})
 
 	router.DELETE("/drop-database", func(ctx *gin.Context) {
@@ -36,4 +33,8 @@ func Main() {
 	})
 
 	_ = router.Run("0.0.0.0:5000")
+}
+
+func keyCredit(userId string) string {
+	return "user_" + userId + ":credit"
 }

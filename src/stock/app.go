@@ -1,33 +1,32 @@
 package stock
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"wdm/common"
 )
 
-var gatewayUrl string
 var snowGen *common.SnowflakeGenerator
-var rdb *redis.Client
+var rdb *redisDB
 
 func Main() {
-	gatewayUrl = common.MustGetEnv("GATEWAY_URL")
-
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
-
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", common.MustGetEnv("REDIS_HOST"), common.MustGetEnv("REDIS_PORT")),
-		Password: common.MustGetEnv("REDIS_PASSWORD"),
-		DB:       common.MustS2I(common.MustGetEnv("REDIS_DB")),
-	})
+	rdb = newRedisDB()
 
 	router := gin.New()
-	router.Use(gin.Logger())
+	common.DEffect(func() { router.Use(common.GinLogger()) })
+
+	router.POST("/item/create/:price", createItem)
+	router.GET("/find/:item_id", findItem)
+	router.POST("/add/:item_id/:amount", addStock)
+	router.POST("/subtract/:item_id/:amount", removeStock)
+
+	router.POST("/checkout/tx/prepare/:tx_id", prepareCkTx)
+	router.POST("/checkout/tx/commit/:tx_id", commitCkTx)
+	router.POST("/checkout/tx/abort/:tx_id", abortCkTx)
 
 	router.GET("/ping", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, common.NowString()+" stock "+snowGen.Next().String())
+		common.GinPingHandler(ctx, "stock", snowGen, rdb)
 	})
 
 	router.DELETE("/drop-database", func(ctx *gin.Context) {
@@ -36,4 +35,12 @@ func Main() {
 	})
 
 	_ = router.Run("0.0.0.0:5000")
+}
+
+func keyPrice(itemId string) string {
+	return "item_" + itemId + ":price"
+}
+
+func keyStock(itemId string) string {
+	return "item_" + itemId + ":stock"
 }

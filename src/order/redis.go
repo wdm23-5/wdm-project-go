@@ -8,7 +8,8 @@ import (
 )
 
 type redisDB struct {
-	rdb *redis.Client
+	redis.Client
+	rsHDecrIfGe0XX *redis.Script
 }
 
 func newRedisDB() *redisDB {
@@ -18,13 +19,12 @@ func newRedisDB() *redisDB {
 		DB:       common.MustS2I(common.MustGetEnv("REDIS_DB")),
 	})
 
-	return &redisDB{rdb: rdb}
+	return &redisDB{
+		Client:         *rdb,
+		rsHDecrIfGe0XX: redis.NewScript(luaHDecrIfGe0XX),
+	}
 }
 
-func (rdb *redisDB) ping(ctx context.Context) *redis.StatusCmd {
-	return rdb.rdb.Ping(ctx)
-}
-
-func (rdb *redisDB) flushDB(ctx context.Context) {
-	rdb.rdb.FlushDB(ctx)
+func (rdb *redisDB) HDecrIfGe0XX(ctx context.Context, key, field string) *redis.Cmd {
+	return rdb.rsHDecrIfGe0XX.Run(ctx, rdb.Client, []string{key}, field)
 }

@@ -13,7 +13,7 @@ minikube start --memory=16384 --cpus=8
 minikube addons enable ingress
 
 # helm chart
-./deploy-charts-minicube.sh
+source deploy-charts-minikube.sh
 
 # deploy
 kubectl delete -f k8s/.
