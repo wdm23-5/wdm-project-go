@@ -51,16 +51,16 @@ type IdAmountPair struct {
 	Amount int    `json:"amount"`
 }
 
-type ItemTxPrepareRequest struct {
-	TxId  string         `json:"tx_id"` // reserved. use the tx_id in url instead
+type ItemTxPrpAbtRequest struct {
+	TxId  string         `json:"tx_id"`
 	Items []IdAmountPair `json:"items"`
 }
 
-type ItemTxPrepareResponse struct {
+type ItemTxPrpResponse struct {
 	TotalCost int `json:"total_cost"`
 }
 
-type CreditTxPrepareRequest struct {
-	TxId   string       `json:"tx_id"` // reserved. use the tx_id in url instead
-	Credit IdAmountPair `json:"credit"`
+type CreditTxPrpAbtRequest struct {
+	TxId string       `json:"tx_id"`
+	Pay  IdAmountPair `json:"pay"`
 }
