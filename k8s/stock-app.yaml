@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: stock-service
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     component: stock
   ports:
@@ -38,10 +38,10 @@ spec:
           command: ["./stock-gin"]
           args: [""]
           ports:
-            - containerPort: 5000
+            - containerPort: 5000  
           env:
             - name: REDIS_HOST
-              value: "redis-master"
+              value: "redis-0"
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_PASSWORD
