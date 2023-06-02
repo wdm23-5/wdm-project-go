@@ -9,9 +9,11 @@ import (
 
 type redisDB struct {
 	redis.Client
-	rsHDecrIfGe0XX *redis.Script
-	rsPrepareCkTx  *redis.Script
-	rsCommitCkTx   *redis.Script
+	rsHDecrIfGe0XX    *redis.Script
+	rsPrepareCkTx     *redis.Script
+	rsAcknowledgeCkTx *redis.Script
+	rsCommitCkTx      *redis.Script
+	rsAbortCkTx       *redis.Script
 }
 
 func newRedisDB() *redisDB {
@@ -22,10 +24,12 @@ func newRedisDB() *redisDB {
 	})
 
 	return &redisDB{
-		Client:         *rdb,
-		rsHDecrIfGe0XX: redis.NewScript(luaHDecrIfGe0XX),
-		rsPrepareCkTx:  redis.NewScript(luaPrepareCkTx),
-		rsCommitCkTx:   redis.NewScript(luaCommitCkTx),
+		Client:            *rdb,
+		rsHDecrIfGe0XX:    redis.NewScript(luaHDecrIfGe0XX),
+		rsPrepareCkTx:     redis.NewScript(luaPrepareCkTx),
+		rsAcknowledgeCkTx: redis.NewScript(luaAcknowledgeCkTx),
+		rsCommitCkTx:      redis.NewScript(luaCommitCkTx),
+		rsAbortCkTx:       redis.NewScript(luaAbortCkTx),
 	}
 }
 
@@ -42,17 +46,25 @@ func (rdb *redisDB) PrepareCkTx(ctx context.Context, txId, orderId string) *redi
 }
 
 func (rdb *redisDB) AcknowledgeCkTx(ctx context.Context, txId, orderId string) *redis.Cmd {
-	return rdb.rsPrepareCkTx.Run(
+	return rdb.rsAcknowledgeCkTx.Run(
 		ctx, rdb.Client,
-		[]string{keyCkTx(orderId), common.KeyTxState(txId), keyPaid(orderId)},
+		[]string{keyCkTx(orderId), common.KeyTxState(txId)},
 		txId, common.TxAcknowledged,
 	)
 }
 
 func (rdb *redisDB) CommitCkTx(ctx context.Context, txId, orderId string) *redis.Cmd {
-	return rdb.rsPrepareCkTx.Run(
+	return rdb.rsCommitCkTx.Run(
 		ctx, rdb.Client,
 		[]string{keyCkTx(orderId), common.KeyTxState(txId), keyPaid(orderId)},
 		txId, common.TxCommitted,
+	)
+}
+
+func (rdb *redisDB) AbortCkTx(ctx context.Context, txId, orderId string) *redis.Cmd {
+	return rdb.rsAbortCkTx.Run(
+		ctx, rdb.Client,
+		[]string{keyCkTx(orderId), common.KeyTxState(txId)},
+		txId, common.TxAborted,
 	)
 }

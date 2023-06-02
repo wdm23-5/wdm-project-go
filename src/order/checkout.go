@@ -47,18 +47,31 @@ func checkoutOrder(ctx *gin.Context) {
 	}
 
 	// ask stock
-	price, err := prepareCkTxStock(txId, info)
+	price, err := prepareCkTxStock(txId, info.cart)
 	if err != nil {
-		ctx.String(http.StatusBadRequest, "checkoutOrder: %v", err)
-		// todo: abort
+		// todo: use message queue
+		go abortCkTxStock(txId, info.cart)
+		_, errA := rdb.AbortCkTx(ctx, txId, orderId).Result()
+		if errA != nil {
+			ctx.String(http.StatusInternalServerError, "checkoutOrder: AbortCkTx: %v; %v", errA, err)
+		} else {
+			ctx.String(http.StatusBadRequest, "checkoutOrder: %v", err)
+		}
 		return
 	}
 
 	// ask payment
 	err = prepareCkTxPayment(txId, info.userId, price)
 	if err != nil {
-		ctx.String(http.StatusBadRequest, "checkoutOrder: %v", err)
-		// todo: abort
+		// todo: use message queue
+		go abortCkTxStock(txId, info.cart)
+		go abortCkTxPayment(txId, info.userId, price)
+		_, errA := rdb.AbortCkTx(ctx, txId, orderId).Result()
+		if errA != nil {
+			ctx.String(http.StatusInternalServerError, "checkoutOrder: AbortCkTx: %v; %v", errA, err)
+		} else {
+			ctx.String(http.StatusBadRequest, "checkoutOrder: %v", err)
+		}
 		return
 	}
 

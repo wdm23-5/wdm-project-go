@@ -108,13 +108,13 @@ skipCart:
 
 // ------- stock -------
 
-func prepareCkTxStock(txId string, info orderInfo) (price int, err error) {
-	if len(info.cart) == 0 {
+func prepareCkTxStock(txId string, cart map[string]int) (price int, err error) {
+	if len(cart) == 0 {
 		return 0, nil
 	}
 
 	requests := make(map[string]*common.ItemTxPrpAbtRequest, 4)
-	for itemId, amount := range info.cart {
+	for itemId, amount := range cart {
 		if amount <= 0 {
 			continue
 		}
@@ -160,9 +160,8 @@ func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemT
 			}
 			payload, err := json.Marshal(*req)
 			if err != nil {
-				errCh <- err.Error()
-				// write error before change state
 				abort.Store(true)
+				errCh <- err.Error()
 				return
 			}
 			// todo: make use of mId
@@ -173,28 +172,28 @@ func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemT
 				return
 			}
 			if err != nil {
-				errCh <- "post " + err.Error()
 				abort.Store(true)
+				errCh <- "post " + err.Error()
 				return
 			}
 			if resp.StatusCode != http.StatusOK {
-				errCh <- "http " + resp.Status
 				abort.Store(true)
+				errCh <- "http " + resp.Status
 				return
 			}
 			//goland:noinspection GoUnhandledErrorResult
 			defer resp.Body.Close()
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
-				errCh <- "read " + err.Error()
 				abort.Store(true)
+				errCh <- "read " + err.Error()
 				return
 			}
 			var data common.ItemTxPrpResponse
 			err = json.Unmarshal(body, &data)
 			if err != nil {
-				errCh <- "unmarshal " + err.Error()
 				abort.Store(true)
+				errCh <- "unmarshal " + err.Error()
 				return
 			}
 			okCh <- data.TotalCost

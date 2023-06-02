@@ -46,21 +46,47 @@ local cart = redis.call('HGETALL', KEYS[3])
 return {1, user_id, paid, cart}
 `
 
-// for acknowledge and commit
-const luaCommitCkTx = `
--- k1: tx_id; k2: tx_state; k3: paid
--- a1: tx_id; a2: TxAcknowledged/TxCommitted
+const luaAcknowledgeCkTx = `
+-- k1: tx_id; k2: tx_state
+-- a1: tx_id; a2: TxAcknowledged
 
 local locked = redis.call('GET', KEYS[1])
 if locked ~= ARGV[1] then
     -- not locked by this tx
     return {err = "error tx_id"}
 end
--- local paid = redis.call('SET', KEYS[3], 1, 'XX')
--- if paid == nil then
---     -- no such order
---     return {err = "error order_id"}
--- end
+redis.call('SET', KEYS[2], ARGV[2])
+return true
+`
+
+const luaCommitCkTx = `
+-- k1: tx_id; k2: tx_state; k3: paid
+-- a1: tx_id; a2: TxCommitted
+
+local locked = redis.call('GET', KEYS[1])
+if locked ~= ARGV[1] then
+    -- not locked by this tx
+    return {err = "error tx_id"}
+end
+local paid = redis.call('SET', KEYS[3], 1, 'XX')
+if paid == nil then
+    -- no such order
+    return {err = "error order_id"}
+end
+redis.call('SET', KEYS[2], ARGV[2])
+return true
+`
+
+const luaAbortCkTx = `
+-- k1: tx_id; k2: tx_state
+-- a1: tx_id; a2: TxAborted
+
+local locked = redis.call('GET', KEYS[1])
+if locked ~= ARGV[1] then
+    -- not locked by this tx
+    return {err = "error tx_id"}
+end
+redis.call('DEL', KEYS[1])
 redis.call('SET', KEYS[2], ARGV[2])
 return true
 `
