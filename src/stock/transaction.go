@@ -2,6 +2,7 @@ package stock
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"net/http"
@@ -11,12 +12,6 @@ import (
 	"wdm/common"
 )
 
-// PRP -> ABT
-//  v
-// ACK -> ABT
-//  v
-// CMT
-
 func prepareCkTx(ctx *gin.Context) {
 	var req common.ItemTxPrpRequest
 	if err := ctx.BindJSON(&req); err != nil {
@@ -24,9 +19,11 @@ func prepareCkTx(ctx *gin.Context) {
 		return
 	}
 
+	// todo: check if all item share the same machineId
+
 	val, err := rdb.PrepareCkTx(ctx, req.TxId).Result()
 	if err != nil {
-		ctx.String(http.StatusInternalServerError, "prepareCkTx: %v", err)
+		ctx.String(http.StatusInternalServerError, "prepareCkTx: PrepareCkTx %v", err)
 		return
 	}
 	stateStr, ok := val.(string)
@@ -49,7 +46,7 @@ func prepareCkTx(ctx *gin.Context) {
 	}
 	switch state {
 	case "":
-		// new tx
+		// new tx, pass
 	case common.TxAcknowledged, common.TxCommitted:
 		priceStr, err := rdb.HGet(ctx, common.KeyTxLocked(req.TxId), "price").Result()
 		if err != nil {
@@ -78,8 +75,12 @@ func prepareCkTx(ctx *gin.Context) {
 		val, err := rdb.PrepareCkTxMove(ctx, req.TxId, itemId, amount).Result()
 		if err == redis.Nil {
 			// out of stock
-			// todo
-			abortCkTx(ctx)
+			err := abtThenRollback(ctx, req.TxId)
+			if err != nil {
+				ctx.String(http.StatusInternalServerError, "prepareCkTx: PrepareCkTxMove %v", err)
+				return
+			}
+			ctx.String(http.StatusNotAcceptable, "prepareCkTx: PrepareCkTxMove out of stock")
 			return
 		}
 		if err != nil {
@@ -97,7 +98,7 @@ func prepareCkTx(ctx *gin.Context) {
 			continue
 		case common.TxAborted:
 			// fast abort, rollback by the abort consumer
-			ctx.String(http.StatusBadRequest, "prepareCkTx: PrepareCkTxMove abort")
+			ctx.String(http.StatusNotAcceptable, "prepareCkTx: PrepareCkTxMove abort")
 			return
 		default:
 			ctx.String(http.StatusInternalServerError, "prepareCkTx: PrepareCkTxMove invalid state %v", state)
@@ -130,7 +131,7 @@ func prepareCkTx(ctx *gin.Context) {
 			// all good
 		case common.TxAborted:
 			// fast abort, rollback by the abort consumer
-			ctx.String(http.StatusBadRequest, "prepareCkTx: AcknowledgeCkTx abort")
+			ctx.String(http.StatusNotAcceptable, "prepareCkTx: AcknowledgeCkTx abort")
 			return
 		default:
 			ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx invalid state %v", state)
@@ -166,24 +167,32 @@ func commitCkTx(ctx *gin.Context) {
 	switch state := common.TxState(stateStr); state {
 	case common.TxAcknowledged, common.TxCommitted:
 		ctx.Status(http.StatusOK)
+		return
 	default:
 		ctx.String(http.StatusInternalServerError, "commitCkTx: invalid state %v", state)
+		return
 	}
 }
 
 func abortCkTx(ctx *gin.Context) {
 	txId := ctx.Param("tx_id")
-
-	val, err := rdb.AbortCkTx(ctx, txId).Result()
+	err := abtThenRollback(ctx, txId)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "abortCkTx: %v", err)
 		return
 	}
+	ctx.Status(http.StatusOK)
+}
+
+func abtThenRollback(ctx context.Context, txId string) error {
+	val, err := rdb.AbortCkTx(ctx, txId).Result()
+	if err != nil {
+		return fmt.Errorf("abtThenRollback: %v", err)
+	}
 
 	stateStr, ok := val.(string)
 	if !ok {
-		ctx.String(http.StatusInternalServerError, "abortCkTx: not string %v", val)
-		return
+		return fmt.Errorf("abtThenRollback: not string %v", val)
 	}
 	switch state := common.TxState(stateStr); state {
 	case common.TxPreparing, common.TxAcknowledged:
@@ -208,10 +217,10 @@ func abortCkTx(ctx *gin.Context) {
 				}
 			}
 		}()
-		ctx.Status(http.StatusOK)
-	case common.TxAborted:
-		ctx.Status(http.StatusOK)
+		return nil
+	case "", common.TxAborted:
+		return nil
 	default:
-		ctx.String(http.StatusInternalServerError, "abortCkTx: invalid state %v", state)
+		return fmt.Errorf("abtThenRollback: invalid state %v", state)
 	}
 }

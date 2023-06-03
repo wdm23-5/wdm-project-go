@@ -33,6 +33,17 @@ func newRedisDB() *redisDB {
 	}
 }
 
+func (rdb *redisDB) CacheAllScripts(ctx context.Context) error {
+	pipe := rdb.Pipeline()
+	rdb.rsHDecrIfGe0XX.Load(ctx, pipe)
+	rdb.rsPrepareCkTx.Load(ctx, pipe)
+	rdb.rsAcknowledgeCkTx.Load(ctx, pipe)
+	rdb.rsCommitCkTx.Load(ctx, pipe)
+	rdb.rsAbortCkTx.Load(ctx, pipe)
+	_, err := pipe.Exec(ctx)
+	return err
+}
+
 func (rdb *redisDB) HDecrIfGe0XX(ctx context.Context, key, field string) *redis.Cmd {
 	return rdb.rsHDecrIfGe0XX.Run(ctx, rdb.Client, []string{key}, field)
 }

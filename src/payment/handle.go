@@ -85,7 +85,9 @@ func removeCredit(ctx *gin.Context) {
 }
 
 // todo
-// weird api, seems unused by the test suit
+// so called internal api, seems unused by the test suit
+// also not used by us
+// very slow
 func cancelPayment(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	orderId := ctx.Param("order_id")

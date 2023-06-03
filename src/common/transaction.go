@@ -2,6 +2,16 @@ package common
 
 type TxState string
 
+// On receiver we have
+//
+//  ø  -> ABT (fast abort)
+//  v
+// PRP -> ABT
+//  v
+// ACK -> ABT
+//  v
+// CMT
+
 const (
 	TxPreparing    TxState = "PRP"
 	TxAcknowledged TxState = "ACK"
