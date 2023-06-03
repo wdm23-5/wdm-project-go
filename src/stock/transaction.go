@@ -1,17 +1,15 @@
 package stock
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 	"wdm/common"
 )
-
-// todo:
-//  record tx state due to at-least-one
-//  save tx data locally
 
 // PRP -> ABT
 //  v
@@ -20,7 +18,7 @@ import (
 // CMT
 
 func prepareCkTx(ctx *gin.Context) {
-	var req common.ItemTxPrpAbtRequest
+	var req common.ItemTxPrpRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.String(http.StatusBadRequest, "prepareCkTx: %v", err)
 		return
@@ -79,7 +77,10 @@ func prepareCkTx(ctx *gin.Context) {
 		amount := req.Items[i].Amount
 		val, err := rdb.PrepareCkTxMove(ctx, req.TxId, itemId, amount).Result()
 		if err == redis.Nil {
-			continue
+			// out of stock
+			// todo
+			abortCkTx(ctx)
+			return
 		}
 		if err != nil {
 			ctx.String(http.StatusInternalServerError, "prepareCkTx: PrepareCkTxMove %v", err)
@@ -96,37 +97,62 @@ func prepareCkTx(ctx *gin.Context) {
 			continue
 		case common.TxAborted:
 			// fast abort, rollback by the abort consumer
-			ctx.String(http.StatusBadRequest, "prepareCkTx: abort")
+			ctx.String(http.StatusBadRequest, "prepareCkTx: PrepareCkTxMove abort")
 			return
 		default:
-			ctx.String(http.StatusInternalServerError, "prepareCkTx: move invalid state %v", state)
+			ctx.String(http.StatusInternalServerError, "prepareCkTx: PrepareCkTxMove invalid state %v", state)
 			return
 		}
 	}
 
 	// all pass, ack
-	// todo: change state
-	priceStr, err := rdb.HGet(ctx, common.KeyTxLocked(req.TxId), "price").Result()
+	val, err = rdb.AcknowledgeCkTx(ctx, req.TxId).Result()
 	if err != nil {
-		ctx.String(http.StatusInternalServerError, "prepareCkTx: ack HGET %v", err)
+		ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx %v", err)
 		return
 	}
-	price, err := strconv.Atoi(priceStr)
-	if err != nil {
-		ctx.String(http.StatusInternalServerError, "prepareCkTx: ack atoi %v", err)
+	arr, ok := val.([]interface{})
+	if !ok {
+		ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx not an array of any")
 		return
 	}
-	ctx.JSON(http.StatusOK, common.ItemTxPrpResponse{TotalCost: price})
+	if len(arr) != 2 {
+		ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx array length error")
+		return
+	}
+
+	if stateStr, ok := arr[0].(string); !ok {
+		ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx array[0] not a string")
+		return
+	} else {
+		switch state := common.TxState(stateStr); state {
+		case common.TxPreparing:
+			// all good
+		case common.TxAborted:
+			// fast abort, rollback by the abort consumer
+			ctx.String(http.StatusBadRequest, "prepareCkTx: AcknowledgeCkTx abort")
+			return
+		default:
+			ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx invalid state %v", state)
+			return
+		}
+	}
+
+	if priceStr, ok := arr[1].(string); !ok {
+		ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx array[1] not a string")
+		return
+	} else if price, err := strconv.Atoi(priceStr); err != nil {
+		ctx.String(http.StatusInternalServerError, "prepareCkTx: AcknowledgeCkTx array[1] not an int %v", err)
+		return
+	} else {
+		ctx.JSON(http.StatusOK, common.ItemTxPrpResponse{TotalCost: price})
+	}
 }
 
 func commitCkTx(ctx *gin.Context) {
 	txId := ctx.Param("tx_id")
 
 	val, err := rdb.CommitCkTx(ctx, txId).Result()
-	if err == redis.Nil {
-		ctx.Status(http.StatusNotFound)
-		return
-	}
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "commitCkTx: %v", err)
 		return
@@ -147,6 +173,45 @@ func commitCkTx(ctx *gin.Context) {
 
 func abortCkTx(ctx *gin.Context) {
 	txId := ctx.Param("tx_id")
-	// todo: roll back
-	ctx.String(http.StatusTeapot, "abortCkTx")
+
+	val, err := rdb.AbortCkTx(ctx, txId).Result()
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "abortCkTx: %v", err)
+		return
+	}
+
+	stateStr, ok := val.(string)
+	if !ok {
+		ctx.String(http.StatusInternalServerError, "abortCkTx: not string %v", val)
+		return
+	}
+	switch state := common.TxState(stateStr); state {
+	case common.TxPreparing, common.TxAcknowledged:
+		// roll back
+		go func() {
+			ctx := context.Background()
+			keys := make([]string, 0)
+			cursor := uint64(0)
+			for cursor != 0 {
+				keys, cursor, err = rdb.HScan(ctx, common.KeyTxLocked(txId), cursor, "", 0).Result()
+				if err != nil {
+					return
+				}
+				pipe := rdb.Pipeline()
+				for i := 0; i < len(keys); i += 2 {
+					itemId := strings.TrimPrefix(keys[i], "item_")
+					rdb.AppendAbortCkTxRollback(ctx, pipe, txId, itemId)
+				}
+				_, err := pipe.Exec(ctx)
+				if err != nil {
+					return
+				}
+			}
+		}()
+		ctx.Status(http.StatusOK)
+	case common.TxAborted:
+		ctx.Status(http.StatusOK)
+	default:
+		ctx.String(http.StatusInternalServerError, "abortCkTx: invalid state %v", state)
+	}
 }

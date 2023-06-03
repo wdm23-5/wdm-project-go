@@ -12,7 +12,7 @@ import (
 //  save tx data locally
 
 func prepareCkTx(ctx *gin.Context) {
-	var req common.CreditTxPrpAbtRequest
+	var req common.CreditTxPrpRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.String(http.StatusBadRequest, "prepareCkTx: %v", err)
 		return
@@ -34,7 +34,7 @@ func commitCkTx(ctx *gin.Context) {
 }
 
 func abortCkTx(ctx *gin.Context) {
-	var req common.CreditTxPrpAbtRequest
+	var req common.CreditTxPrpRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.String(http.StatusBadRequest, "abortCkTx: %v", err)
 		return

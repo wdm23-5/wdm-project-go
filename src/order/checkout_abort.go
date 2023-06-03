@@ -8,7 +8,7 @@ import (
 )
 
 func abortCkTxStock(txId string, cart map[string]int) {
-	requests := make(map[string]*common.ItemTxPrpAbtRequest, 4)
+	requests := make(map[string]*common.ItemTxPrpRequest, 4)
 	for itemId, amount := range cart {
 		if amount <= 0 {
 			continue
@@ -18,14 +18,14 @@ func abortCkTxStock(txId string, cart map[string]int) {
 		mId := "1"
 		req := requests[mId]
 		if req == nil {
-			req = &common.ItemTxPrpAbtRequest{TxId: txId, Items: make([]common.IdAmountPair, 0, 8)}
+			req = &common.ItemTxPrpRequest{TxId: txId, Items: make([]common.IdAmountPair, 0, 8)}
 			requests[mId] = req
 		}
 		req.Items = append(req.Items, common.IdAmountPair{Id: itemId, Amount: amount})
 	}
 
 	for machineId, request := range requests {
-		go func(mId string, req *common.ItemTxPrpAbtRequest) {
+		go func(mId string, req *common.ItemTxPrpRequest) {
 			payload, err := json.Marshal(*req)
 			if err != nil {
 				return
@@ -38,7 +38,7 @@ func abortCkTxStock(txId string, cart map[string]int) {
 }
 
 func abortCkTxPayment(txId, userId string, price int) {
-	req := common.CreditTxPrpAbtRequest{TxId: txId, Payer: common.IdAmountPair{Id: userId, Amount: price}}
+	req := common.CreditTxPrpRequest{TxId: txId, Payer: common.IdAmountPair{Id: userId, Amount: price}}
 	payload, err := json.Marshal(req)
 	if err != nil {
 		return

@@ -1,6 +1,7 @@
 package stock
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"wdm/common"
@@ -12,6 +13,9 @@ var rdb *redisDB
 func Main() {
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
+	if err := rdb.CacheAllScripts(context.Background()); err != nil {
+		panic("load lua script: " + err.Error())
+	}
 
 	router := gin.New()
 	common.DEffect(func() { router.Use(common.GinLogger()) })

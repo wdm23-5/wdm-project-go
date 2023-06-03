@@ -51,7 +51,7 @@ type IdAmountPair struct {
 	Amount int    `json:"amount"`
 }
 
-type ItemTxPrpAbtRequest struct {
+type ItemTxPrpRequest struct {
 	TxId  string         `json:"tx_id"`
 	Items []IdAmountPair `json:"items"`
 }
@@ -60,7 +60,7 @@ type ItemTxPrpResponse struct {
 	TotalCost int `json:"total_cost"`
 }
 
-type CreditTxPrpAbtRequest struct {
+type CreditTxPrpRequest struct {
 	TxId  string       `json:"tx_id"`
 	Payer IdAmountPair `json:"payer"`
 }

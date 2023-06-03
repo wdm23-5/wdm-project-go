@@ -113,7 +113,7 @@ func prepareCkTxStock(txId string, cart map[string]int) (price int, err error) {
 		return 0, nil
 	}
 
-	requests := make(map[string]*common.ItemTxPrpAbtRequest, 4)
+	requests := make(map[string]*common.ItemTxPrpRequest, 4)
 	for itemId, amount := range cart {
 		if amount <= 0 {
 			continue
@@ -123,7 +123,7 @@ func prepareCkTxStock(txId string, cart map[string]int) (price int, err error) {
 		mId := "1"
 		req := requests[mId]
 		if req == nil {
-			req = &common.ItemTxPrpAbtRequest{TxId: txId, Items: make([]common.IdAmountPair, 0, 8)}
+			req = &common.ItemTxPrpRequest{TxId: txId, Items: make([]common.IdAmountPair, 0, 8)}
 			requests[mId] = req
 		}
 		req.Items = append(req.Items, common.IdAmountPair{Id: itemId, Amount: amount})
@@ -143,7 +143,7 @@ func prepareCkTxStock(txId string, cart map[string]int) (price int, err error) {
 }
 
 // go this function and receive on ch
-func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemTxPrpAbtRequest, ch chan string) {
+func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemTxPrpRequest, ch chan string) {
 	okCh := make(chan int)
 	errCh := make(chan string)
 	count := 0
@@ -153,7 +153,7 @@ func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemT
 			break
 		}
 		count++
-		go func(mId string, req *common.ItemTxPrpAbtRequest) {
+		go func(mId string, req *common.ItemTxPrpRequest) {
 			if abort.Load() {
 				errCh <- "abort"
 				return
@@ -221,7 +221,7 @@ func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemT
 // ------- payment -------
 
 func prepareCkTxPayment(txId, userId string, price int) error {
-	req := common.CreditTxPrpAbtRequest{TxId: txId, Payer: common.IdAmountPair{Id: userId, Amount: price}}
+	req := common.CreditTxPrpRequest{TxId: txId, Payer: common.IdAmountPair{Id: userId, Amount: price}}
 	payload, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("prepareCkTxPayment: %v", err)
