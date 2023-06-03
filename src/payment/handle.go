@@ -113,7 +113,7 @@ func paymentStatus(ctx *gin.Context) {
 
 func getOrderFromRemote(ctx *gin.Context, orderId string) (valid bool, data common.FindOrderResponse) {
 	valid = false
-	resp, err := http.Post(orderServiceUrl+"find/"+orderId, "text/plain", nil)
+	resp, err := http.Get(orderServiceUrl + "find/" + orderId)
 	if err != nil {
 		ctx.String(http.StatusTeapot, "getOrderFromRemote: %v", err)
 		return

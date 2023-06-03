@@ -27,8 +27,8 @@ func GinLogger() gin.HandlerFunc {
 		latency := time.Now().Sub(start)
 		status := ctx.Writer.Status()
 		_, _ = fmt.Fprintf(
-			gin.DefaultWriter, "st %v | lat %v | url %v | http %v | resp %v |\n",
-			start, latency, path, status, wrapped.body,
+			gin.DefaultWriter, "st %v | lat %v | url [%v] %v | http %v | resp %v |\n",
+			start.Format("15:04:05.000"), latency, ctx.Request.Method, path, status, wrapped.body,
 		)
 	}
 }

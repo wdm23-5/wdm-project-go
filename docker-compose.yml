@@ -15,9 +15,10 @@ services:
     command: ./order-gin
     image: order:latest
     environment:
-      - GATEWAY_URL=http://gateway:80
       # - GIN_MODE=release
       - MACHINE_ID=1
+      - PAYMENT_SERVICE_URL=http://gateway:80/payment/
+      - STOCK_SERVICE_URL=http://gateway:80/stock/
     env_file:
       - env/order_redis.env
 
@@ -32,7 +33,6 @@ services:
     command: ./stock-gin
     image: stock:latest
     environment:
-      - GATEWAY_URL=http://gateway:80
       # - GIN_MODE=release
       - MACHINE_ID=1
     env_file:
@@ -49,9 +49,9 @@ services:
     command: ./payment-gin
     image: user:latest
     environment:
-      - GATEWAY_URL=http://gateway:80
       # - GIN_MODE=release
       - MACHINE_ID=1
+      - ORDER_SERVICE_URL=http://gateway:80/orders/
     env_file:
       - env/payment_redis.env
 
