@@ -165,7 +165,7 @@ func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemT
 				return
 			}
 			// todo: make use of mId
-			url := gatewayUrl + "stock/tx/checkout/prepare/" + txId
+			url := stockServiceUrl + "tx/checkout/prepare/" + txId
 			resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
 			if abort.Load() {
 				errCh <- "abort"
@@ -228,7 +228,7 @@ func prepareCkTxPayment(txId, userId string, price int) error {
 	}
 	// todo: make use of mId
 	// mId := common.SnowflakeIDPickMachineIdFast(userId)
-	url := gatewayUrl + "payment/tx/checkout/prepare/" + txId
+	url := paymentServiceUrl + "tx/checkout/prepare/" + txId
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return fmt.Errorf("prepareCkTxPayment: post %v", err)

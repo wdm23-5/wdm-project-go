@@ -16,14 +16,14 @@ func commitCkTxRemote(txId string, info orderInfo) {
 	for machineId := range stockMachineIds {
 		go func(mId string) {
 			// todo: make use of mId
-			url := gatewayUrl + "stock/tx/checkout/commit/" + txId
+			url := stockServiceUrl + "tx/checkout/commit/" + txId
 			_, _ = http.Post(url, "text/plain", nil)
 		}(machineId)
 	}
 
 	go func() {
 		// todo: make use of mId
-		url := gatewayUrl + "payment/tx/checkout/commit/" + txId
+		url := paymentServiceUrl + "tx/checkout/commit/" + txId
 		_, _ = http.Post(url, "text/plain", nil)
 	}()
 }

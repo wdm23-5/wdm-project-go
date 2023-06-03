@@ -70,7 +70,7 @@ func checkoutOrder(ctx *gin.Context) {
 		if errA != nil {
 			ctx.String(http.StatusInternalServerError, "checkoutOrder: AbortCkTx: %v; %v", errA, err)
 		} else {
-			ctx.String(http.StatusBadRequest, "checkoutOrder: %v", err)
+			ctx.String(http.StatusNotAcceptable, "checkoutOrder: %v", err)
 		}
 		return
 	}

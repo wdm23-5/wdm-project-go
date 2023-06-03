@@ -20,7 +20,7 @@ func abortCkTxStock(txId string, cart map[string]int) {
 	for machineId := range requests {
 		go func(mId string) {
 			// todo: make use of mId
-			url := gatewayUrl + "stock/tx/checkout/abort/" + txId
+			url := stockServiceUrl + "tx/checkout/abort/" + txId
 			_, _ = http.Post(url, "text/plain", nil)
 		}(machineId)
 	}
@@ -29,6 +29,6 @@ func abortCkTxStock(txId string, cart map[string]int) {
 func abortCkTxPayment(txId string) {
 	// todo: make use of mId
 	// mId := common.SnowflakeIDPickMachineIdFast(userId)
-	url := gatewayUrl + "payment/tx/checkout/abort/" + txId
+	url := paymentServiceUrl + "tx/checkout/abort/" + txId
 	_, _ = http.Post(url, "text/plain", nil)
 }

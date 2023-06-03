@@ -13,8 +13,6 @@ end
 return false
 `
 
-// todo: refactor lua for tx
-
 const luaPrepareCkTx = `
 -- k1: user_id; k2: paid; k3: cart; k4: ck_tx_id; k5: tx_state
 -- a1: tx_id; a2: TxPreparing
@@ -23,8 +21,8 @@ const luaPrepareCkTx = `
 --          {0, user_id, paid, {}}
 --          {1, user_id, paid, {item_id, amount, item_id, amount, ...}}
 
-local user_id = redis.call('GET', KEYS[1])
-if user_id == nil then
+local userId = redis.call('GET', KEYS[1])
+if userId == nil then
     return false
 end
 
@@ -38,13 +36,12 @@ end
 local locked = redis.call('SET', KEYS[4], ARGV[1], 'NX')
 if locked == nil then
     -- lock failed
-    return {0, user_id, paid, {}}
+    return {0, userId, paid, {}}
 end
-
-redis.call('SET', KEYS[5], ARGV[2])
 
 local cart = redis.call('HGETALL', KEYS[3])
 
+redis.call('SET', KEYS[5], ARGV[2])
 return {1, user_id, paid, cart}
 `
 

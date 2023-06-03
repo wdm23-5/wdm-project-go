@@ -7,12 +7,13 @@ import (
 	"wdm/common"
 )
 
-var gatewayUrl string
+var orderServiceUrl string
 var snowGen *common.SnowflakeGenerator
 var rdb *redisDB
 
 func Main() {
-	gatewayUrl = common.MustGetEnv("GATEWAY_URL")
+	gatewayUrl := common.MustGetEnv("GATEWAY_URL")
+	orderServiceUrl = gatewayUrl + "/order/"
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
 	if err := rdb.CacheAllScripts(context.Background()); err != nil {

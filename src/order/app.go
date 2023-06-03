@@ -7,12 +7,15 @@ import (
 	"wdm/common"
 )
 
-var gatewayUrl string
+var stockServiceUrl string   // append WITHOUT stock and WITHOUT initial slash
+var paymentServiceUrl string // append suffix WITHOUT payment and WITHOUT initial slash
 var snowGen *common.SnowflakeGenerator
 var rdb *redisDB
 
 func Main() {
-	gatewayUrl = common.MustGetEnv("GATEWAY_URL")
+	gatewayUrl := common.MustGetEnv("GATEWAY_URL")
+	stockServiceUrl = gatewayUrl + "/stock/"
+	paymentServiceUrl = gatewayUrl + "/payment/"
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
 	if err := rdb.CacheAllScripts(context.Background()); err != nil {
@@ -59,6 +62,7 @@ func keyCart(orderId string) string {
 	return "order_" + orderId + ":item_id:amount"
 }
 
+// the tx that is checking out / has checked out this order
 func keyCkTxId(orderId string) string {
 	return "order_" + orderId + ":tx_id"
 }

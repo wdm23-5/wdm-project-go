@@ -144,7 +144,7 @@ func getItemPrice(ctx context.Context, itemId string) (price int, err error) {
 
 func getItemFromRemote(itemId string) (data common.FindItemResponse, err error) {
 	// todo: make use of mId
-	resp, err := http.Post(gatewayUrl+"/stock/find/"+itemId, "text/plain", nil)
+	resp, err := http.Post(stockServiceUrl+"find/"+itemId, "text/plain", nil)
 	if err != nil {
 		err = fmt.Errorf("getItemFromRemote: post %v", err)
 		return
