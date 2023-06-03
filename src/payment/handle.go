@@ -1,8 +1,10 @@
 package payment
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"io"
 	"net/http"
 	"strconv"
 	"wdm/common"
@@ -21,7 +23,8 @@ func findUser(ctx *gin.Context) {
 	if err == redis.Nil {
 		ctx.String(http.StatusNotFound, userId)
 		return
-	} else if err != nil {
+	}
+	if err != nil {
 		ctx.String(http.StatusInternalServerError, "findUser: %v", err)
 		return
 	}
@@ -51,7 +54,8 @@ func addCredit(ctx *gin.Context) {
 		// special
 		ctx.JSON(http.StatusOK, common.AddFundsResponse{Done: false})
 		return
-	} else if err != nil {
+	}
+	if err != nil {
 		ctx.String(http.StatusInternalServerError, "addCredit: %v", err)
 		return
 	}
@@ -64,7 +68,7 @@ func removeCredit(ctx *gin.Context) {
 	amountStr := ctx.Param("amount")
 	amount, err := strconv.Atoi(amountStr)
 	if err != nil {
-		ctx.String(http.StatusMethodNotAllowed, "addCredit: %v", err)
+		ctx.String(http.StatusMethodNotAllowed, "removeCredit: %v", err)
 		return
 	}
 
@@ -73,25 +77,63 @@ func removeCredit(ctx *gin.Context) {
 		// special
 		ctx.Status(http.StatusBadRequest)
 		return
-	} else if err != nil {
-		ctx.String(http.StatusInternalServerError, "addCredit: %v", err)
+	}
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "removeCredit: %v", err)
 		return
 	}
 
 	ctx.Status(http.StatusOK)
 }
 
-// weird api, seems unused by the test suit
+// so-called internal api, seems unused by the test suit
+// also not used by us
+// very slow
 func cancelPayment(ctx *gin.Context) {
-	userId := ctx.Param("user_id")
+	// userId := ctx.Param("user_id")
 	orderId := ctx.Param("order_id")
-	_, _ = userId, orderId
+	valid, resp := getOrderFromRemote(ctx, orderId)
+	if !valid {
+		return
+	}
+	rdb.IncrByIfGe0XX(ctx, keyCredit(resp.UserId), resp.TotalCost)
 	ctx.Status(http.StatusOK)
 }
 
+// seems unused, thus slow impl
 func paymentStatus(ctx *gin.Context) {
-	userId := ctx.Param("user_id")
+	// userId := ctx.Param("user_id")
 	orderId := ctx.Param("order_id")
-	_, _ = userId, orderId
-	ctx.JSON(http.StatusTeapot, common.PaymentStatusResponse{Paid: false})
+	valid, resp := getOrderFromRemote(ctx, orderId)
+	if !valid {
+		return
+	}
+	ctx.JSON(http.StatusOK, common.PaymentStatusResponse{Paid: resp.Paid})
+}
+
+func getOrderFromRemote(ctx *gin.Context, orderId string) (valid bool, data common.FindOrderResponse) {
+	valid = false
+	resp, err := http.Post(orderServiceUrl+"find/"+orderId, "text/plain", nil)
+	if err != nil {
+		ctx.String(http.StatusTeapot, "getOrderFromRemote: %v", err)
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		ctx.String(http.StatusTeapot, "getOrderFromRemote: http %v", resp.Status)
+		return
+	}
+	//goland:noinspection GoUnhandledErrorResult
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		ctx.String(http.StatusTeapot, "getOrderFromRemote: read %v", err)
+		return
+	}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		ctx.String(http.StatusTeapot, "getOrderFromRemote: unmarshal %v", err)
+		return
+	}
+	valid = true
+	return
 }

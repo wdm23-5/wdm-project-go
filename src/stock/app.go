@@ -1,6 +1,7 @@
 package stock
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"wdm/common"
@@ -12,6 +13,9 @@ var rdb *redisDB
 func Main() {
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
+	if err := rdb.CacheAllScripts(context.Background()); err != nil {
+		panic("load lua script: " + err.Error())
+	}
 
 	router := gin.New()
 	common.DEffect(func() { router.Use(common.GinLogger()) })
@@ -21,9 +25,9 @@ func Main() {
 	router.POST("/add/:item_id/:amount", addStock)
 	router.POST("/subtract/:item_id/:amount", removeStock)
 
-	router.POST("/checkout/tx/prepare/:tx_id", prepareCkTx)
-	router.POST("/checkout/tx/commit/:tx_id", commitCkTx)
-	router.POST("/checkout/tx/abort/:tx_id", abortCkTx)
+	router.POST("/tx/checkout/prepare/:tx_id", prepareCkTx)
+	router.POST("/tx/checkout/commit/:tx_id", commitCkTx)
+	router.POST("/tx/checkout/abort/:tx_id", abortCkTx)
 
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "stock", snowGen, rdb)

@@ -1,17 +1,24 @@
 package payment
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"wdm/common"
 )
 
+var orderServiceUrl string
 var snowGen *common.SnowflakeGenerator
 var rdb *redisDB
 
 func Main() {
+	gatewayUrl := common.MustGetEnv("GATEWAY_URL")
+	orderServiceUrl = gatewayUrl + "/order/"
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
+	if err := rdb.CacheAllScripts(context.Background()); err != nil {
+		panic("load lua script: " + err.Error())
+	}
 
 	router := gin.New()
 	common.DEffect(func() { router.Use(common.GinLogger()) })
@@ -22,6 +29,10 @@ func Main() {
 	router.POST("/pay/:user_id/:order_id/:amount", removeCredit)
 	router.POST("/cancel/:user_id/:order_id", cancelPayment)
 	router.GET("/status/:user_id/:order_id", paymentStatus)
+
+	router.POST("/tx/checkout/prepare/:tx_id", prepareCkTx)
+	router.POST("/tx/checkout/commit/:tx_id", commitCkTx)
+	router.POST("/tx/checkout/abort/:tx_id", abortCkTx)
 
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "payment", snowGen, rdb)

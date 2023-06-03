@@ -1,19 +1,26 @@
 package order
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"wdm/common"
 )
 
-var gatewayUrl string
+var stockServiceUrl string   // append WITHOUT stock and WITHOUT initial slash
+var paymentServiceUrl string // append suffix WITHOUT payment and WITHOUT initial slash
 var snowGen *common.SnowflakeGenerator
 var rdb *redisDB
 
 func Main() {
-	gatewayUrl = common.MustGetEnv("GATEWAY_URL")
+	gatewayUrl := common.MustGetEnv("GATEWAY_URL")
+	stockServiceUrl = gatewayUrl + "/stock/"
+	paymentServiceUrl = gatewayUrl + "/payment/"
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
+	if err := rdb.CacheAllScripts(context.Background()); err != nil {
+		panic("load lua script: " + err.Error())
+	}
 
 	router := gin.New()
 	common.DEffect(func() { router.Use(common.GinLogger()) })
@@ -24,7 +31,7 @@ func Main() {
 	router.DELETE("/removeItem/:order_id/:item_id", removeItem)
 	router.GET("/find/:order_id", findOrder)
 	router.POST("/checkout/:order_id", checkoutOrder)
-	
+
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "order", snowGen, rdb)
 	})
@@ -55,6 +62,7 @@ func keyCart(orderId string) string {
 	return "order_" + orderId + ":item_id:amount"
 }
 
-func keyCkTx(orderId string) string {
+// the tx that is checking out / has checked out this order
+func keyCkTxId(orderId string) string {
 	return "order_" + orderId + ":tx_id"
 }

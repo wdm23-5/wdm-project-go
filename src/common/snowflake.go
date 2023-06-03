@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -58,27 +59,46 @@ type SnowflakeID struct {
 	sequence  uint16
 }
 
-var makeSnowflakeIDError = errors.New("MakeSnowflakeID")
+var snowflakeIDError = errors.New("invalid Snowflake ID")
+var snowflakeRegex = regexp.MustCompile(`t(\d+)m(\d+)s(\d+)`)
 
-func MakeSnowflakeID(s string) (SnowflakeID, error) {
-	regex := regexp.MustCompile(`t(\d+)m(\d+)s(\d+)`)
-	match := regex.FindStringSubmatch(s)
+func MakeSnowflakeID(sid string) (SnowflakeID, error) {
+	match := snowflakeRegex.FindStringSubmatch(sid)
 	if len(match) != 4 {
-		return SnowflakeID{}, makeSnowflakeIDError
+		return SnowflakeID{}, snowflakeIDError
 	}
 	timestamp, err := strconv.ParseInt(match[1], 10, 64)
 	if err != nil || timestamp < 0 {
-		return SnowflakeID{}, makeSnowflakeIDError
+		return SnowflakeID{}, snowflakeIDError
 	}
 	machineId, err := strconv.ParseUint(match[2], 10, 16)
 	if err != nil || machineId > math.MaxUint16 {
-		return SnowflakeID{}, makeSnowflakeIDError
+		return SnowflakeID{}, snowflakeIDError
 	}
 	sequence, err := strconv.ParseUint(match[3], 10, 16)
 	if err != nil || sequence > math.MaxUint16 {
-		return SnowflakeID{}, makeSnowflakeIDError
+		return SnowflakeID{}, snowflakeIDError
 	}
 	return SnowflakeID{timestamp: timestamp, machineId: uint16(machineId), sequence: uint16(sequence)}, nil
+}
+
+// faster but not 100% safe
+func SnowflakeIDPickMachineIdFast(sid string) string {
+	sb := strings.Builder{}
+	start := false
+	for _, ru := range sid {
+		if ru == 'm' {
+			start = true
+			continue
+		}
+		if ru == 's' {
+			break
+		}
+		if start {
+			sb.WriteRune(ru)
+		}
+	}
+	return sb.String()
 }
 
 // since redis stores int as string, this implementation directly uses string as id
