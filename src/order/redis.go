@@ -52,7 +52,7 @@ func (rdb *redisDB) PrepareCkTx(ctx context.Context, txId, orderId string) *redi
 	return rdb.rsPrepareCkTx.Run(
 		ctx, rdb.Client,
 		[]string{keyUserId(orderId), keyPaid(orderId), keyCart(orderId), keyCkTxId(orderId), common.KeyTxState(txId)},
-		txId, common.TxPreparing,
+		txId, string(common.TxPreparing),
 	)
 }
 
@@ -60,7 +60,7 @@ func (rdb *redisDB) AcknowledgeCkTx(ctx context.Context, txId, orderId string) *
 	return rdb.rsAcknowledgeCkTx.Run(
 		ctx, rdb.Client,
 		[]string{keyCkTxId(orderId), common.KeyTxState(txId)},
-		txId, common.TxAcknowledged,
+		txId, string(common.TxAcknowledged),
 	)
 }
 
@@ -68,7 +68,7 @@ func (rdb *redisDB) CommitCkTx(ctx context.Context, txId, orderId string) *redis
 	return rdb.rsCommitCkTx.Run(
 		ctx, rdb.Client,
 		[]string{keyCkTxId(orderId), common.KeyTxState(txId), keyPaid(orderId)},
-		txId, common.TxCommitted,
+		txId, string(common.TxCommitted),
 	)
 }
 
@@ -76,6 +76,6 @@ func (rdb *redisDB) AbortCkTx(ctx context.Context, txId, orderId string) *redis.
 	return rdb.rsAbortCkTx.Run(
 		ctx, rdb.Client,
 		[]string{keyCkTxId(orderId), common.KeyTxState(txId)},
-		txId, common.TxAborted,
+		txId, string(common.TxAborted),
 	)
 }

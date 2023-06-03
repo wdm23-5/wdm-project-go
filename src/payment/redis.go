@@ -49,7 +49,7 @@ func (rdb *redisDB) PrpThenAckAbtCkTx(ctx context.Context, txId, userId string, 
 	return rdb.rsPrpThenAckAbtCkTx.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId), keyCredit(userId)},
-		common.TxAcknowledged, common.TxAborted, amount, userId,
+		string(common.TxAcknowledged), string(common.TxAborted), amount, userId,
 	)
 }
 
@@ -57,7 +57,7 @@ func (rdb *redisDB) CommitCkTx(ctx context.Context, txId string) *redis.Cmd {
 	return rdb.rsCommitCkTx.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId)},
-		common.TxAcknowledged, common.TxCommitted,
+		string(common.TxAcknowledged), string(common.TxCommitted),
 	)
 }
 
@@ -65,6 +65,6 @@ func (rdb *redisDB) AbtThenRollbackCkTx(ctx context.Context, txId, userId string
 	return rdb.rsAbtThenRollbackCkTx.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId), keyCredit(userId)},
-		common.TxAcknowledged, common.TxAborted, userId,
+		string(common.TxAcknowledged), string(common.TxAborted), userId,
 	)
 }
