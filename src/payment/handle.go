@@ -21,7 +21,8 @@ func findUser(ctx *gin.Context) {
 	if err == redis.Nil {
 		ctx.String(http.StatusNotFound, userId)
 		return
-	} else if err != nil {
+	}
+	if err != nil {
 		ctx.String(http.StatusInternalServerError, "findUser: %v", err)
 		return
 	}
@@ -51,7 +52,8 @@ func addCredit(ctx *gin.Context) {
 		// special
 		ctx.JSON(http.StatusOK, common.AddFundsResponse{Done: false})
 		return
-	} else if err != nil {
+	}
+	if err != nil {
 		ctx.String(http.StatusInternalServerError, "addCredit: %v", err)
 		return
 	}
@@ -64,7 +66,7 @@ func removeCredit(ctx *gin.Context) {
 	amountStr := ctx.Param("amount")
 	amount, err := strconv.Atoi(amountStr)
 	if err != nil {
-		ctx.String(http.StatusMethodNotAllowed, "addCredit: %v", err)
+		ctx.String(http.StatusMethodNotAllowed, "removeCredit: %v", err)
 		return
 	}
 
@@ -73,22 +75,25 @@ func removeCredit(ctx *gin.Context) {
 		// special
 		ctx.Status(http.StatusBadRequest)
 		return
-	} else if err != nil {
-		ctx.String(http.StatusInternalServerError, "addCredit: %v", err)
+	}
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "removeCredit: %v", err)
 		return
 	}
 
 	ctx.Status(http.StatusOK)
 }
 
+// todo
 // weird api, seems unused by the test suit
 func cancelPayment(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	orderId := ctx.Param("order_id")
 	_, _ = userId, orderId
-	ctx.Status(http.StatusOK)
+	ctx.Status(http.StatusTeapot)
 }
 
+// todo
 func paymentStatus(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 	orderId := ctx.Param("order_id")

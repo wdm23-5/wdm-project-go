@@ -23,9 +23,9 @@ func Main() {
 	router.POST("/cancel/:user_id/:order_id", cancelPayment)
 	router.GET("/status/:user_id/:order_id", paymentStatus)
 
-	router.POST("/tx/checkout/prepare/:tx_id", nil)
-	router.POST("/tx/checkout/commit/:tx_id", nil)
-	router.POST("/tx/checkout/abort/:tx_id", nil)
+	router.POST("/tx/checkout/prepare/:tx_id", prepareCkTx)
+	router.POST("/tx/checkout/commit/:tx_id", commitCkTx)
+	router.POST("/tx/checkout/abort/:tx_id", abortCkTx)
 
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "payment", snowGen, rdb)

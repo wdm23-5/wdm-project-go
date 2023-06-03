@@ -61,6 +61,6 @@ type ItemTxPrpResponse struct {
 }
 
 type CreditTxPrpAbtRequest struct {
-	TxId string       `json:"tx_id"`
-	Pay  IdAmountPair `json:"pay"`
+	TxId  string       `json:"tx_id"`
+	Payer IdAmountPair `json:"payer"`
 }

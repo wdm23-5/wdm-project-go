@@ -24,7 +24,7 @@ func Main() {
 	router.DELETE("/removeItem/:order_id/:item_id", removeItem)
 	router.GET("/find/:order_id", findOrder)
 	router.POST("/checkout/:order_id", checkoutOrder)
-	
+
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "order", snowGen, rdb)
 	})
@@ -55,6 +55,6 @@ func keyCart(orderId string) string {
 	return "order_" + orderId + ":item_id:amount"
 }
 
-func keyCkTx(orderId string) string {
+func keyCkTxId(orderId string) string {
 	return "order_" + orderId + ":tx_id"
 }

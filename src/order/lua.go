@@ -13,8 +13,10 @@ end
 return false
 `
 
+// todo: refactor lua for tx
+
 const luaPrepareCkTx = `
--- k1: user_id; k2: paid; k3: cart; k4: tx_id; k5: tx_state
+-- k1: user_id; k2: paid; k3: cart; k4: ck_tx_id; k5: tx_state
 -- a1: tx_id; a2: TxPreparing
 -- return:
 --          false
@@ -47,7 +49,7 @@ return {1, user_id, paid, cart}
 `
 
 const luaAcknowledgeCkTx = `
--- k1: tx_id; k2: tx_state
+-- k1: ck_tx_id; k2: tx_state
 -- a1: tx_id; a2: TxAcknowledged
 
 local locked = redis.call('GET', KEYS[1])
@@ -60,7 +62,7 @@ return true
 `
 
 const luaCommitCkTx = `
--- k1: tx_id; k2: tx_state; k3: paid
+-- k1: ck_tx_id; k2: tx_state; k3: paid
 -- a1: tx_id; a2: TxCommitted
 
 local locked = redis.call('GET', KEYS[1])
@@ -78,7 +80,7 @@ return true
 `
 
 const luaAbortCkTx = `
--- k1: tx_id; k2: tx_state
+-- k1: ck_tx_id; k2: tx_state
 -- a1: tx_id; a2: TxAborted
 
 local locked = redis.call('GET', KEYS[1])

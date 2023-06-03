@@ -38,7 +38,7 @@ func abortCkTxStock(txId string, cart map[string]int) {
 }
 
 func abortCkTxPayment(txId, userId string, price int) {
-	req := common.CreditTxPrpAbtRequest{TxId: txId, Pay: common.IdAmountPair{Id: userId, Amount: price}}
+	req := common.CreditTxPrpAbtRequest{TxId: txId, Payer: common.IdAmountPair{Id: userId, Amount: price}}
 	payload, err := json.Marshal(req)
 	if err != nil {
 		return
