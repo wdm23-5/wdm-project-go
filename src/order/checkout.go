@@ -49,8 +49,14 @@ func checkoutOrder(ctx *gin.Context) {
 	// ask stock
 	price, err := prepareCkTxStock(txId, info.cart)
 	if err != nil {
-		// todo: use message queue
-		go abortCkTxStock(txId, info.cart)
+		strictConsistency := true
+		//goland:noinspection GoBoolExpressions
+		if strictConsistency {
+			abortCkTxStock(txId, info.cart)
+		} else {
+			// todo: use message queue
+			go abortCkTxStock(txId, info.cart)
+		}
 		_, errA := rdb.AbortCkTx(ctx, txId, orderId).Result()
 		if errA != nil {
 			ctx.String(http.StatusInternalServerError, "checkoutOrder: AbortCkTx: %v; %v", errA, err)
@@ -63,9 +69,16 @@ func checkoutOrder(ctx *gin.Context) {
 	// ask payment
 	err = prepareCkTxPayment(txId, info.userId, price)
 	if err != nil {
-		// todo: use message queue
-		go abortCkTxStock(txId, info.cart)
-		go abortCkTxPayment(txId)
+		strictConsistency := true
+		//goland:noinspection GoBoolExpressions
+		if strictConsistency {
+			abortCkTxPayment(txId)
+			abortCkTxStock(txId, info.cart)
+		} else {
+			// todo: use message queue
+			go abortCkTxPayment(txId)
+			go abortCkTxStock(txId, info.cart)
+		}
 		_, errA := rdb.AbortCkTx(ctx, txId, orderId).Result()
 		if errA != nil {
 			ctx.String(http.StatusInternalServerError, "checkoutOrder: AbortCkTx: %v; %v", errA, err)

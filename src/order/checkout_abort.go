@@ -2,6 +2,7 @@ package order
 
 import (
 	"net/http"
+	"sync"
 )
 
 func abortCkTxStock(txId string, cart map[string]int) {
@@ -17,13 +18,17 @@ func abortCkTxStock(txId string, cart map[string]int) {
 		requests[mId] = struct{}{}
 	}
 
+	wg := sync.WaitGroup{}
 	for machineId := range requests {
+		wg.Add(1)
 		go func(mId string) {
+			defer wg.Done()
 			// todo: make use of mId
 			url := stockServiceUrl + "tx/checkout/abort/" + txId
 			_, _ = http.Post(url, "text/plain", nil)
 		}(machineId)
 	}
+	wg.Wait()
 }
 
 func abortCkTxPayment(txId string) {

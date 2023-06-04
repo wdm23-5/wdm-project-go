@@ -89,7 +89,12 @@ func abortCkTx(ctx *gin.Context) {
 		ctx.String(http.StatusInternalServerError, "abortCkTx: HGETALL %v", err)
 		return
 	}
-	if len(fieldValues) != 1 {
+	if lfv := len(fieldValues); lfv == 0 {
+		// todo: atomic check and set
+		rdb.Set(ctx, common.KeyTxState(txId), common.TxAborted, 0)
+		ctx.String(http.StatusOK, "abortCkTx: HGETALL length zero")
+		return
+	} else if lfv != 1 {
 		ctx.String(http.StatusInternalServerError, "abortCkTx: HGETALL length error")
 		return
 	}

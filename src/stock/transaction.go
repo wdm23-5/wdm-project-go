@@ -189,6 +189,7 @@ func abortCkTx(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// the error MUST be waited for even in eventual consistency
 func abtThenRollback(ctx context.Context, txId string) error {
 	val, err := rdb.AbortCkTx(ctx, txId).Result()
 	if err != nil {
@@ -202,30 +203,58 @@ func abtThenRollback(ctx context.Context, txId string) error {
 	switch state := common.TxState(stateStr); state {
 	case common.TxPreparing, common.TxAcknowledged:
 		// roll back
-		go func() {
-			ctx := context.Background()
-			keys := make([]string, 0)
-			cursor := uint64(0)
-			for cursor != 0 {
-				keys, cursor, err = rdb.HScan(ctx, common.KeyTxLocked(txId), cursor, "", 0).Result()
-				if err != nil {
-					return
-				}
-				pipe := rdb.Pipeline()
-				for i := 0; i < len(keys); i += 2 {
-					itemId := strings.TrimPrefix(keys[i], "item_")
-					rdb.AppendAbortCkTxRollback(ctx, pipe, txId, itemId)
-				}
-				_, err := pipe.Exec(ctx)
-				if err != nil {
-					return
-				}
+		strictConsistency := true
+		//goland:noinspection GoBoolExpressions
+		if strictConsistency {
+			ch := make(chan string, 1)
+			rollbackStock(ctx, txId, ch)
+			errStr := <-ch
+			if errStr != "OK" {
+				return fmt.Errorf("abtThenRollback: rollbackStock %v", errStr)
 			}
-		}()
+			return nil
+		}
+		go rollbackStock(context.Background(), txId, nil)
 		return nil
 	case "", common.TxAborted:
 		return nil
 	default:
 		return fmt.Errorf("abtThenRollback: invalid state %v", state)
+	}
+}
+
+// called internally by abtThenRollback
+func rollbackStock(ctx context.Context, txId string, ch chan string) {
+	keys := make([]string, 0)
+	cursor := uint64(0)
+	var err error
+	for {
+		keys, cursor, err = rdb.HScan(ctx, common.KeyTxLocked(txId), cursor, "", 0).Result()
+		if err != nil {
+			if ch != nil {
+				ch <- err.Error()
+			}
+			return
+		}
+		if len(keys) > 0 {
+			pipe := rdb.Pipeline()
+			for i := 0; i < len(keys); i += 2 {
+				itemId := strings.TrimPrefix(keys[i], "item_")
+				rdb.AppendAbortCkTxRollback(ctx, pipe, txId, itemId)
+			}
+			_, err = pipe.Exec(ctx)
+			if err != nil {
+				if ch != nil {
+					ch <- err.Error()
+				}
+				return
+			}
+		}
+		if cursor == 0 {
+			break
+		}
+	}
+	if ch != nil {
+		ch <- "OK"
 	}
 }
