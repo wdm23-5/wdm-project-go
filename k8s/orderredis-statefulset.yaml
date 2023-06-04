@@ -3,15 +3,15 @@ kind: StatefulSet
 metadata:
   name: redis-order0
 spec:
-  serviceName: redis0
+  serviceName: redis-order0
   replicas: 3
   selector:
     matchLabels:
-      app: redis0
+      app: redis-order0
   template:
     metadata:
       labels:
-        app: redis0
+        app: redis-order0
     spec:
       initContainers:
       - name: config
@@ -44,7 +44,7 @@ spec:
         - name: config
           mountPath: /tmp/redis/
       containers:
-      - name: redis0
+      - name: redis-order0
         image: redis:7.0.10-alpine
         command: ["redis-server"]
         args: ["/etc/redis/redis.conf"]
@@ -75,7 +75,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis0
+  name: redis-order0
 spec:
   # clusterIP: None
   type: LoadBalancer
@@ -84,22 +84,22 @@ spec:
     targetPort: 6379
     name: redis
   selector:
-    app: redis0
+    app: redis-order0
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: redis-order1
 spec:
-  serviceName: redis1
+  serviceName: redis-order1
   replicas: 3
   selector:
     matchLabels:
-      app: redis1
+      app: redis-order1
   template:
     metadata:
       labels:
-        app: redis1
+        app: redis-order1
     spec:
       initContainers:
       - name: config
@@ -132,7 +132,7 @@ spec:
         - name: config
           mountPath: /tmp/redis/
       containers:
-      - name: redis1
+      - name: redis-order1
         image: redis:7.0.10-alpine
         command: ["redis-server"]
         args: ["/etc/redis/redis.conf"]
@@ -163,7 +163,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis1
+  name: redis-order1
 spec:
   # clusterIP: None
   type: LoadBalancer
@@ -172,22 +172,22 @@ spec:
     targetPort: 6379
     name: redis
   selector:
-    app: redis1
+    app: redis-order1
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: redis-order2
 spec:
-  serviceName: redis2
+  serviceName: redis-order2
   replicas: 3
   selector:
     matchLabels:
-      app: redis2
+      app: redis-order2
   template:
     metadata:
       labels:
-        app: redis2
+        app: redis-order2
     spec:
       initContainers:
       - name: config
@@ -220,7 +220,7 @@ spec:
         - name: config
           mountPath: /tmp/redis/
       containers:
-      - name: redis2
+      - name: redis-order2
         image: redis:7.0.10-alpine
         command: ["redis-server"]
         args: ["/etc/redis/redis.conf"]
@@ -251,7 +251,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis2
+  name: redis-order2
 spec:
   # clusterIP: None
   type: LoadBalancer
@@ -260,4 +260,4 @@ spec:
     targetPort: 6379
     name: redis
   selector:
-    app: redis2
+    app: redis-order2
