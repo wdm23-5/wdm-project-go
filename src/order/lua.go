@@ -2,9 +2,6 @@ package order
 
 const luaHDecrIfGe0XX = `
 local value = redis.call('HGET', KEYS[1], ARGV[1])
-if value == nil then
-    return false
-end
 value = tonumber(value)
 if value ~= nil and value - 1 >= 0 then
     redis.call('HSET', KEYS[1], ARGV[1], value - 1)
@@ -22,19 +19,19 @@ const luaPrepareCkTx = `
 --          {1, user_id, paid, {item_id, amount, item_id, amount, ...}}
 
 local userId = redis.call('GET', KEYS[1])
-if userId == nil then
+if userId == false then
     return false
 end
 
 local paid = redis.call('GET', KEYS[2])
-if paid == nil then
+if paid == false then
     return false
 end
 
 -- if already paid, the paying tx will be locked by the transaction id
 -- aborted transaction will delete this key
 local locked = redis.call('SET', KEYS[4], ARGV[1], 'NX')
-if locked == nil then
+if locked == false then
     -- lock failed
     return {0, userId, paid, {}}
 end
@@ -68,9 +65,11 @@ if locked ~= ARGV[1] then
     return {err = "error tx_id"}
 end
 local paid = redis.call('SET', KEYS[3], 1, 'XX')
-if paid == nil then
+if paid == false then
     -- no such order
-    return {err = "error order_id"}
+    redis.call('SET', KEYS[2], ARGV[2])
+    -- return {err = "error order_id"}
+    return true
 end
 redis.call('SET', KEYS[2], ARGV[2])
 return true

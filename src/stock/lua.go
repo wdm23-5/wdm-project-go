@@ -6,7 +6,7 @@ const luaPrepareCkTx = `
 -- return: state
 
 local state = redis.call('GET', KEYS[1])
-if state ~= nil then
+if state ~= false then
     return state
 end
 
@@ -32,7 +32,7 @@ if amount == nil then
 end
 
 local state = redis.call('GET', KEYS[1])
-if state == nil then
+if state == false then
     return ''
 end
 if state ~= ARGV[1] then
@@ -64,7 +64,7 @@ const luaAcknowledgeCkTx = `
 -- return: {state, price} / err
 
 local state = redis.call('GET', KEYS[1])
-if state == nil then
+if state == false then
     return {'', ''}
 end
 if state ~= ARGV[1] then
@@ -83,7 +83,7 @@ const luaCommitCkTx = `
 -- return: state
 
 local state = redis.call('GET', KEYS[1])
-if state == nil then
+if state == false then
     return ''
 end
 if state ~= ARGV[1] then
@@ -106,7 +106,7 @@ const luaAbortCkTx = `
 -- return: state
 
 local state = redis.call('GET', KEYS[1])
-if state == nil then
+if state == false then
     -- fast abort
     redis.call('SET', KEYS[1], ARGV[3])
     return ''
@@ -129,7 +129,7 @@ const luaAbortCkTxRollback = `
 -- return: state / nil
 
 local state = redis.call('GET', KEYS[1])
-if state == nil then
+if state == false then
     return ''
 end
 if state ~= ARGV[1] then

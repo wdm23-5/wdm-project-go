@@ -7,10 +7,7 @@ if delta == nil then
     return {err = "delta is nan"}
 end
 local value = redis.call('GET', KEYS[1])
-if value == nil then
-    return false
-end
-value = tonumber(value)
+value = tonumber(value)  -- tonumber(false) == nil
 if value ~= nil and value + delta >= 0 then
     redis.call('SET', KEYS[1], value + delta)  -- assume OK
     return value + delta

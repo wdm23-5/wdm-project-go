@@ -8,6 +8,10 @@ services:
     ports:
       - "8000:80"
 
+  order-db:
+    image: redis:latest
+    command: redis-server --requirepass redis --maxmemory 512mb
+
   order-service:
     build:
       context: src
@@ -22,7 +26,7 @@ services:
     env_file:
       - env/order_redis.env
 
-  order-db:
+  stock-db:
     image: redis:latest
     command: redis-server --requirepass redis --maxmemory 512mb
 
@@ -38,7 +42,7 @@ services:
     env_file:
       - env/stock_redis.env
 
-  stock-db:
+  payment-db:
     image: redis:latest
     command: redis-server --requirepass redis --maxmemory 512mb
 
@@ -54,7 +58,3 @@ services:
       - ORDER_SERVICE_URL=http://gateway:80/orders/
     env_file:
       - env/payment_redis.env
-
-  payment-db:
-    image: redis:latest
-    command: redis-server --requirepass redis --maxmemory 512mb
