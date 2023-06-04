@@ -79,10 +79,10 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
-              memory: "4Gi"
+              memory: "0.5Gi"
               cpu: "2"
             requests:
-              memory: "4Gi"
+              memory: "0.5Gi"
               cpu: "2"
           command: ["./order-gin"]
           args: [""]
@@ -135,10 +135,10 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
-              memory: "4Gi"
+              memory: "0.5Gi"
               cpu: "2"
             requests:
-              memory: "4Gi"
+              memory: "0.5Gi"
               cpu: "2"
           command: ["./order-gin"]
           args: [""]
@@ -191,10 +191,10 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
-              memory: "4Gi"
+              memory: "0.5Gi"
               cpu: "2"
             requests:
-              memory: "4Gi"
+              memory: "0.5Gi"
               cpu: "2"
           command: ["./order-gin"]
           args: [""]
