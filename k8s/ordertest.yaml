@@ -79,11 +79,11 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
             requests:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
           command: ["./order-gin"]
           args: [""]
           ports:
@@ -135,11 +135,11 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
             requests:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
           command: ["./order-gin"]
           args: [""]
           ports:
@@ -191,11 +191,11 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
             requests:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
           command: ["./order-gin"]
           args: [""]
           ports:
