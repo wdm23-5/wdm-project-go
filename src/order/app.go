@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 	"wdm/common"
 )
 
@@ -17,9 +18,12 @@ func Main() {
 	paymentServiceUrl = common.MustGetEnv("PAYMENT_SERVICE_URL")
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
-	if err := rdb.CacheAllScripts(context.Background()); err != nil {
-		panic("load lua script: " + err.Error())
-	}
+	go func() {
+		time.Sleep(time.Second)
+		if err := rdb.CacheAllScripts(context.Background()); err != nil {
+			panic("load lua script: " + err.Error())
+		}
+	}()
 
 	router := gin.New()
 	common.DEffect(func() { router.Use(common.GinLogger()) })

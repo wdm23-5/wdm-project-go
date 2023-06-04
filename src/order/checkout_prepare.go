@@ -140,6 +140,7 @@ func prepareCkTxStock(txId string, cart map[string]int) (price int, err error) {
 }
 
 // go this function and receive on ch
+// called internally by prepareCkTxStock
 func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemTxPrpRequest, ch chan string) {
 	okCh := make(chan int)
 	errCh := make(chan string)
