@@ -225,7 +225,7 @@ kind: Service
 metadata:
   name: stock-service0
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     component: stock-service0
   ports:
@@ -280,7 +280,7 @@ kind: Service
 metadata:
   name: stock-service1
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     component: stock-service1
   ports:
@@ -335,7 +335,7 @@ kind: Service
 metadata:
   name: payment-service0
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     component: payment-service0
   ports:
