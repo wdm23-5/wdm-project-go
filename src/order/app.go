@@ -35,6 +35,10 @@ func Main() {
 		common.GinPingHandler(ctx, "order", snowGen, rdb)
 	})
 
+	router.POST("/redis-exec", func(ctx *gin.Context) {
+		common.RedisCmdHandler(ctx, rdb)
+	})
+
 	router.DELETE("/drop-database", func(ctx *gin.Context) {
 		rdb.FlushDB(ctx)
 		ctx.Status(http.StatusOK)
