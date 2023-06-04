@@ -31,5 +31,5 @@ func RedisCmdHandler(ctx *gin.Context, rdb redis.UniversalClient) {
 		ctx.JSON(http.StatusOK, RedisCmdResponse{Val: fmt.Sprintf("%v", val), Err: err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, RedisCmdResponse{Val: fmt.Sprintf("%v", val), Err: ""})
+	ctx.JSON(http.StatusOK, RedisCmdResponse{Val: fmt.Sprintf("%v", val), Err: "<no error>"})
 }

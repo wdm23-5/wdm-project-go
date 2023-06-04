@@ -11,7 +11,7 @@ if amount == nil then
 end
 
 local state = redis.call('GET', KEYS[1])
-if state ~= nil then
+if state ~= false then
     return state
 end
 
@@ -39,7 +39,7 @@ const luaCommitCkTx = `
 -- return: state
 
 local state = redis.call('GET', KEYS[1])
-if state == nil then
+if state == false then
     return ''
 end
 if state ~= ARGV[1] then
@@ -59,7 +59,7 @@ const luaAbtThenRollbackCkTx = `
 -- return: state / nil
 
 local state = redis.call('GET', KEYS[1])
-if state == nil then
+if state == false then
     -- fast abort
     redis.call('SET', KEYS[1], ARGV[2])
     return ''
