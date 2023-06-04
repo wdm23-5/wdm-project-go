@@ -7,15 +7,14 @@ import (
 	"wdm/common"
 )
 
-var stockServiceUrl string   // append WITHOUT stock and WITHOUT initial slash
+var stockServiceUrl string   // append suffix WITHOUT stock and WITHOUT initial slash
 var paymentServiceUrl string // append suffix WITHOUT payment and WITHOUT initial slash
 var snowGen *common.SnowflakeGenerator
 var rdb *redisDB
 
 func Main() {
-	gatewayUrl := common.MustGetEnv("GATEWAY_URL")
-	stockServiceUrl = gatewayUrl + "/stock/"
-	paymentServiceUrl = gatewayUrl + "/payment/"
+	stockServiceUrl = common.MustGetEnv("STOCK_SERVICE_URL")
+	paymentServiceUrl = common.MustGetEnv("PAYMENT_SERVICE_URL")
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
 	if err := rdb.CacheAllScripts(context.Background()); err != nil {
@@ -34,6 +33,10 @@ func Main() {
 
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "order", snowGen, rdb)
+	})
+
+	router.POST("/redis-exec", func(ctx *gin.Context) {
+		common.RedisCmdHandler(ctx, rdb)
 	})
 
 	router.DELETE("/drop-database", func(ctx *gin.Context) {

@@ -19,7 +19,7 @@ func findOrder(ctx *gin.Context) {
 
 	info, err := loadOrderInfo(ctx, orderId)
 	if err == redis.Nil {
-		ctx.Status(http.StatusNotFound)
+		ctx.String(http.StatusNotFound, "findOrder: loadOrderInfo: %v", err)
 		return
 	}
 	if err != nil {
@@ -27,7 +27,7 @@ func findOrder(ctx *gin.Context) {
 		return
 	}
 
-	var itemsFlat []string
+	itemsFlat := make([]string, 0, 8)
 	priceCh := make(chan int)
 	errCh := make(chan string)
 	nThread := 0
@@ -64,7 +64,7 @@ func findOrder(ctx *gin.Context) {
 		case price := <-priceCh:
 			totalPrice += price
 		case errStr := <-errCh:
-			ctx.String(http.StatusNotFound, errStr)
+			ctx.String(http.StatusNotFound, "findOrder: %v", errStr)
 			go func(i int) {
 				// clean up
 				for i++; i < nThread; i++ {
@@ -131,20 +131,25 @@ func getItemPrice(ctx context.Context, itemId string) (price int, err error) {
 		// no such item in cache
 		item, err := getItemFromRemote(itemId)
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("getItemPrice: %v", err)
 		}
 		// todo: limit size growth with lfu
 		rdb.Set(ctx, key, item.Price, 5*time.Minute)
 		return item.Price, nil
-	} else if err != nil {
-		return 0, err
 	}
-	return strconv.Atoi(val)
+	if err != nil {
+		return 0, fmt.Errorf("getItemPrice: GET %v", err)
+	}
+	price, err = strconv.Atoi(val)
+	if err != nil {
+		return 0, fmt.Errorf("getItemPrice: atoi %v", err)
+	}
+	return
 }
 
 func getItemFromRemote(itemId string) (data common.FindItemResponse, err error) {
 	// todo: make use of mId
-	resp, err := http.Post(stockServiceUrl+"find/"+itemId, "text/plain", nil)
+	resp, err := http.Get(stockServiceUrl + "find/" + itemId)
 	if err != nil {
 		err = fmt.Errorf("getItemFromRemote: post %v", err)
 		return

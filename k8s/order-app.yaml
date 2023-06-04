@@ -48,7 +48,9 @@ spec:
               value: "redis"
             - name: REDIS_DB
               value: "0"
-            - name: GATEWAY_URL
-              value: "http://gateway:80"
             - name: MACHINE_ID
               value: "1"
+            - name: PAYMENT_SERVICE_URL
+              value: "http://gateway:80/payment/"
+            - name: STOCK_SERVICE_URL
+              value: "http://gateway:80/stock/"

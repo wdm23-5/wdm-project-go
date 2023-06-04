@@ -58,7 +58,7 @@ func (rdb *redisDB) PrepareCkTx(ctx context.Context, txId string) *redis.Cmd {
 	return rdb.rsPrepareCkTx.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId)},
-		common.TxPreparing, "price",
+		string(common.TxPreparing), "price",
 	)
 }
 
@@ -66,7 +66,7 @@ func (rdb *redisDB) PrepareCkTxMove(ctx context.Context, txId, itemId string, am
 	return rdb.rsPrepareCkTxMove.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), keyStock(itemId), keyPrice(itemId), common.KeyTxLocked(txId)},
-		common.TxPreparing, amount, "item_"+itemId, "price",
+		string(common.TxPreparing), amount, "item_"+itemId, "price",
 	)
 }
 
@@ -74,7 +74,7 @@ func (rdb *redisDB) AcknowledgeCkTx(ctx context.Context, txId string) *redis.Cmd
 	return rdb.rsAcknowledgeCkTx.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId)},
-		common.TxPreparing, common.TxAcknowledged, "price",
+		string(common.TxPreparing), string(common.TxAcknowledged), "price",
 	)
 }
 
@@ -82,7 +82,7 @@ func (rdb *redisDB) CommitCkTx(ctx context.Context, txId string) *redis.Cmd {
 	return rdb.rsCommitCkTx.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId)},
-		common.TxAcknowledged, common.TxCommitted, "price",
+		string(common.TxAcknowledged), string(common.TxCommitted), "price",
 	)
 }
 
@@ -90,7 +90,7 @@ func (rdb *redisDB) AbortCkTx(ctx context.Context, txId string) *redis.Cmd {
 	return rdb.rsAbortCkTx.Run(
 		ctx, rdb.Client,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId)},
-		common.TxPreparing, common.TxAcknowledged, common.TxAborted, "price",
+		string(common.TxPreparing), string(common.TxAcknowledged), string(common.TxAborted), "price",
 	)
 }
 
@@ -98,6 +98,6 @@ func (rdb *redisDB) AppendAbortCkTxRollback(ctx context.Context, pipe redis.Pipe
 	return rdb.rsAbortCkTxRollback.Run(
 		ctx, pipe,
 		[]string{common.KeyTxState(txId), common.KeyTxLocked(txId), keyStock(itemId)},
-		common.TxAborted, "item_"+itemId,
+		string(common.TxAborted), "item_"+itemId,
 	)
 }

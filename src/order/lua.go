@@ -42,7 +42,7 @@ end
 local cart = redis.call('HGETALL', KEYS[3])
 
 redis.call('SET', KEYS[5], ARGV[2])
-return {1, user_id, paid, cart}
+return {1, userId, paid, cart}
 `
 
 const luaAcknowledgeCkTx = `

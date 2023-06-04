@@ -14,6 +14,11 @@ func prepareCkTx(ctx *gin.Context) {
 		return
 	}
 
+	if txId := ctx.Param("tx_id"); txId != req.TxId {
+		ctx.String(http.StatusBadRequest, "prepareCkTx: txId mismatch")
+		return
+	}
+
 	val, err := rdb.PrpThenAckAbtCkTx(ctx, req.TxId, req.Payer.Id, req.Payer.Amount).Result()
 	if err == redis.Nil {
 		// not enough credit

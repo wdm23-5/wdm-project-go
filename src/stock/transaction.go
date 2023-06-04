@@ -19,6 +19,11 @@ func prepareCkTx(ctx *gin.Context) {
 		return
 	}
 
+	if txId := ctx.Param("tx_id"); txId != req.TxId {
+		ctx.String(http.StatusBadRequest, "prepareCkTx: txId mismatch")
+		return
+	}
+
 	// todo: check if all item share the same machineId
 
 	val, err := rdb.PrepareCkTx(ctx, req.TxId).Result()

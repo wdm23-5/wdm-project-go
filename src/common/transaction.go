@@ -1,5 +1,6 @@
 package common
 
+// always cast to string when passed to redis
 type TxState string
 
 // On receiver we have
