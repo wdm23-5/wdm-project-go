@@ -90,7 +90,7 @@ spec:
             - containerPort: 5000
           env:
             - name: REDIS_HOST
-              value: "redis0"
+              value: redis0
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_PASSWORD
@@ -146,7 +146,7 @@ spec:
             - containerPort: 5000
           env:
             - name: REDIS_HOST
-              value: "redis0"
+              value: redis1
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_PASSWORD
@@ -202,7 +202,7 @@ spec:
             - containerPort: 5000
           env:
             - name: REDIS_HOST
-              value: "redis0"
+              value: redis2
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_PASSWORD
