@@ -18,7 +18,7 @@ func Main() {
 	snowGen = common.NewSnowFlakeGenerator(common.MustGetEnv("MACHINE_ID"))
 	rdb = newRedisDB()
 	if err := rdb.CacheAllScripts(context.Background()); err != nil {
-		panic("load lua script: " + err.Error())
+		panic("load lua script: " + err.Error() + "stockurl:" + stockServiceUrl + "snowGen:" + snowGen  )
 	}
 
 	router := gin.New()
