@@ -143,8 +143,6 @@ spec:
           mountPath: /data
         - name: redis-config
           mountPath: /etc/redis/
-      nodeSelector:
-        cloud.google.com/gke-nodepool: pool-1
       volumes:
       - name: redis-config
         emptyDir: {}
@@ -232,8 +230,6 @@ spec:
           mountPath: /data
         - name: redis-config
           mountPath: /etc/redis/
-      nodeSelector:
-        cloud.google.com/gke-nodepool: pool-1
       volumes:
       - name: redis-config
         emptyDir: {}
