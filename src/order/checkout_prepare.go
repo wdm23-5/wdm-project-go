@@ -37,11 +37,8 @@ func prepareCkTxLocal(ctx *gin.Context, txId, orderId string) (locked bool, info
 	}
 
 	// array[0] to locked
-	if lockedStr, ok := arr[0].(string); !ok {
-		err = errors.New("prepareCkTx: array[0] not a string")
-		return
-	} else if lockedInt, errA := strconv.Atoi(lockedStr); errA != nil {
-		err = fmt.Errorf("prepareCkTx: array[0] not an int (%v)", errA)
+	if lockedInt, ok := arr[0].(int64); !ok {
+		err = errors.New("prepareCkTx: array[0] not an int")
 		return
 	} else {
 		locked = lockedInt != 0
