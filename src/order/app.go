@@ -35,6 +35,10 @@ func Main() {
 	router.GET("/find/:order_id", findOrder)
 	router.POST("/checkout/:order_id", checkoutOrder)
 
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.Status(http.StatusOK)
+	})
+
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "order", snowGen, rdb)
 	})
