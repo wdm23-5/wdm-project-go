@@ -77,7 +77,8 @@ kind: Service
 metadata:
   name: redis0
 spec:
-  clusterIP: None
+  # clusterIP: None
+  type: LoadBalancer
   ports:
   - port: 6379
     targetPort: 6379
@@ -164,7 +165,8 @@ kind: Service
 metadata:
   name: redis1
 spec:
-  clusterIP: None
+  # clusterIP: None
+  type: LoadBalancer
   ports:
   - port: 6379
     targetPort: 6379
@@ -251,7 +253,8 @@ kind: Service
 metadata:
   name: redis2
 spec:
-  clusterIP: None
+  # clusterIP: None
+  type: LoadBalancer
   ports:
   - port: 6379
     targetPort: 6379
