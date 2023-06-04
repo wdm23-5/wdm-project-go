@@ -5,7 +5,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    component: order0
+    component: order-service0
   ports:
     - port: 5000
       name: http
@@ -14,19 +14,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-deployment0
+  name: order-service0
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: order0
+      component: order-service0
   template:
     metadata:
       labels:
-        component: order0
+        component: order-service0
     spec:
       containers:
-        - name: order0
+        - name: order-service0
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
@@ -61,7 +61,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    component: order1
+    component: order-service1
   ports:
     - port: 5000
       name: http
@@ -70,19 +70,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-deployment1
+  name: order-service1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: order1
+      component: order-service1
   template:
     metadata:
       labels:
-        component: order1
+        component: order-service1
     spec:
       containers:
-        - name: order1
+        - name: order-service1
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
@@ -117,7 +117,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    component: order2
+    component: order-service2
   ports:
     - port: 5000
       name: http
@@ -126,19 +126,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-deployment2
+  name: order-service2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: order2
+      component: order-service2
   template:
     metadata:
       labels:
-        component: order2
+        component: order-service2
     spec:
       containers:
-        - name: order2
+        - name: order-service2
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
