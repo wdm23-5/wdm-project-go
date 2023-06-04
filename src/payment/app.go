@@ -37,6 +37,10 @@ func Main() {
 	router.POST("/tx/checkout/commit/:tx_id", commitCkTx)
 	router.POST("/tx/checkout/abort/:tx_id", abortCkTx)
 
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.Status(http.StatusOK)
+	})
+
 	router.GET("/ping", func(ctx *gin.Context) {
 		common.GinPingHandler(ctx, "payment", snowGen, rdb)
 	})
