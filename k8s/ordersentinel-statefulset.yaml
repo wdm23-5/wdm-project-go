@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: sentinel_order0
+  name: sentinel-order0
 spec:
   serviceName: sentinel0
   replicas: 3
@@ -91,7 +91,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: sentinel_order1
+  name: sentinel-order1
 spec:
   serviceName: sentinel1
   replicas: 3
@@ -181,7 +181,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: sentinel_order2
+  name: sentinel-order2
 spec:
   serviceName: sentinel2
   replicas: 3

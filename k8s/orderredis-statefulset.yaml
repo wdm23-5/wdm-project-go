@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis_order0
+  name: redis-order0
 spec:
   serviceName: redis0
   replicas: 3
@@ -88,7 +88,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis_order1
+  name: redis-order1
 spec:
   serviceName: redis1
   replicas: 3
@@ -175,7 +175,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis_order2
+  name: redis-order2
 spec:
   serviceName: redis2
   replicas: 3
