@@ -392,8 +392,8 @@ spec:
               value: "redis"
             - name: REDIS_DB
               value: "0"
-            # - name: MACHINE_ID
-            #   value: "1"
+            - name: MACHINE_ID
+              value: "1"
             - name: ORDER_SERVICE_URL
               value: "http://gateway:80/orders/"
 
