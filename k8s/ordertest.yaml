@@ -13,7 +13,21 @@ spec:
             pathType: Prefix
             backend:
               service:
+                name: order-service0
+                port:
+                  number: 5000
+          - path: /orders/?(.*)
+            pathType: Prefix
+            backend:
+              service:
                 name: order-service1
+                port:
+                  number: 5000
+          - path: /orders/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service2
                 port:
                   number: 5000
           - path: /stock/?(.*)
