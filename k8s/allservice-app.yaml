@@ -1,0 +1,389 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /orders/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service0
+                port:
+                  number: 5000
+          - path: /orders/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service1
+                port:
+                  number: 5000
+          - path: /orders/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service2
+                port:
+                  number: 5000
+          - path: /stock/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: stock-service0
+                port:
+                  number: 5000
+          - path: /stock/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: stock-service1
+                port:
+                  number: 5000  
+          - path: /payment/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service0
+                port:
+                  number: 5000
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service0
+spec:
+  type: LoadBalancer
+  selector:
+    component: order-service0
+  ports:
+    - port: 5000
+      name: http
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: order-service0
+  template:
+    metadata:
+      labels:
+        component: order-service0
+    spec:
+      containers:
+        - name: order-service0
+          image: ghcr.io/wdm23-5/wdm-project-go/order:latest
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+          command: ["./order-gin"]
+          args: [""]
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: redis-order0
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: "redis"
+            - name: REDIS_DB
+              value: "0"
+            - name: GATEWAY_URL
+              value: "http://gateway:80"
+            - name: MACHINE_ID
+              value: "1"
+      
+---   
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service1
+spec:
+  type: LoadBalancer
+  selector:
+    component: order-service1
+  ports:
+    - port: 5000
+      name: http
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: order-service1
+  template:
+    metadata:
+      labels:
+        component: order-service1
+    spec:
+      containers:
+        - name: order-service1
+          image: ghcr.io/wdm23-5/wdm-project-go/order:latest
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+          command: ["./order-gin"]
+          args: [""]
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: redis-order1
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: "redis"
+            - name: REDIS_DB
+              value: "0"
+            - name: GATEWAY_URL
+              value: "http://gateway:80"
+            - name: MACHINE_ID
+              value: "2"
+  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service2
+spec:
+  type: LoadBalancer
+  selector:
+    component: order-service2
+  ports:
+    - port: 5000
+      name: http
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: order-service2
+  template:
+    metadata:
+      labels:
+        component: order-service2
+    spec:
+      containers:
+        - name: order-service2
+          image: ghcr.io/wdm23-5/wdm-project-go/order:latest
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+          command: ["./order-gin"]
+          args: [""]
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: redis-order2
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: "redis"
+            - name: REDIS_DB
+              value: "0"
+            - name: GATEWAY_URL
+              value: "http://gateway:80"
+            - name: MACHINE_ID
+              value: "3"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stock-service0
+spec:
+  type: ClusterIP
+  selector:
+    component: stock-service0
+  ports:
+    - port: 5000
+      name: http
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stock-service0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: stock-service0
+  template:
+    metadata:
+      labels:
+        component: stock-service0
+    spec:
+      containers:
+        - name: stock-service0
+          image: ghcr.io/wdm23-5/wdm-project-go/stock:latest
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+          command: ["./stock-gin"]
+          args: [""]
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: redis-stock0
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: "redis"
+            - name: REDIS_DB
+              value: "0"
+            - name: MACHINE_ID
+              value: "1"
+            - name: ORDER_SERVICE_URL
+              value: "http://gateway:80/orders/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stock-service1
+spec:
+  type: ClusterIP
+  selector:
+    component: stock-service1
+  ports:
+    - port: 5000
+      name: http
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stock-service1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: stock-service1
+  template:
+    metadata:
+      labels:
+        component: stock-service1
+    spec:
+      containers:
+        - name: stock-service1
+          image: ghcr.io/wdm23-5/wdm-project-go/stock:latest
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+          command: ["./stock-gin"]
+          args: [""]
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: redis-stock1
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: "redis"
+            - name: REDIS_DB
+              value: "0"
+            - name: MACHINE_ID
+              value: "2"
+            - name: ORDER_SERVICE_URL
+              value: "http://gateway:80/orders/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service0
+spec:
+  type: ClusterIP
+  selector:
+    component: payment-service0
+  ports:
+    - port: 5000
+      name: http
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: payment-service0
+  template:
+    metadata:
+      labels:
+        component: payment-service0
+    spec:
+      containers:
+        - name: payment-service0
+          image: ghcr.io/wdm23-5/wdm-project-go/payment:latest
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+          command: ["./payment-gin"]
+          args: [""]
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: redis-payment0
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: "redis"
+            - name: REDIS_DB
+              value: "0"
+            - name: MACHINE_ID
+              value: "1"
+
+
+   
+
+
