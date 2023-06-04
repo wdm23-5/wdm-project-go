@@ -41,7 +41,7 @@ spec:
             - containerPort: 5000
           env:
             - name: REDIS_HOST
-              value: "redis-master"
+              value: "redis-order-master"
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_PASSWORD
@@ -51,6 +51,6 @@ spec:
             - name: MACHINE_ID
               value: "1"
             - name: PAYMENT_SERVICE_URL
-              value: "http://gateway:80/payment/"
+              value: "http://payment-service:5000/"
             - name: STOCK_SERVICE_URL
-              value: "http://gateway:80/stock/"
+              value: "http://stock-service:5000/"

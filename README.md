@@ -26,7 +26,12 @@ minikube start --memory=16384 --cpus=8
 minikube addons enable ingress
 
 # helm chart
-source deploy-charts-minikube.sh
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm delete <name of previous redis>
+helm install redis-order bitnami/redis -f helm-config/redis-helm-values.yaml
+helm install redis-stock bitnami/redis -f helm-config/redis-helm-values.yaml
+helm install redis-payment bitnami/redis -f helm-config/redis-helm-values.yaml
 
 # deploy
 kubectl delete -f k8s/.
