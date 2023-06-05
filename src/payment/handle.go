@@ -12,12 +12,25 @@ import (
 
 func createUser(ctx *gin.Context) {
 	userId := snowGen.Next().String()
+	shardKey := userId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "createUser: error shard key %v", shardKey)
+		return
+	}
 	rdb.Set(ctx, keyCredit(userId), 0, 0)
 	ctx.JSON(http.StatusOK, common.CreateUserResponse{UserId: userId})
 }
 
 func findUser(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
+
+	shardKey := userId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "findUser: error shard key %v", shardKey)
+		return
+	}
 
 	creditStr, err := rdb.Get(ctx, keyCredit(userId)).Result()
 	if err == redis.Nil {
@@ -49,6 +62,13 @@ func addCredit(ctx *gin.Context) {
 		return
 	}
 
+	shardKey := userId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "addCredit: error shard key %v", shardKey)
+		return
+	}
+
 	_, err = rdb.IncrByIfGe0XX(ctx, keyCredit(userId), amount).Result()
 	if err == redis.Nil {
 		// special
@@ -69,6 +89,13 @@ func removeCredit(ctx *gin.Context) {
 	amount, err := strconv.Atoi(amountStr)
 	if err != nil {
 		ctx.String(http.StatusMethodNotAllowed, "removeCredit: %v", err)
+		return
+	}
+
+	shardKey := userId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "removeCredit: error shard key %v", shardKey)
 		return
 	}
 
@@ -94,6 +121,12 @@ func cancelPayment(ctx *gin.Context) {
 	orderId := ctx.Param("order_id")
 	valid, resp := getOrderFromRemote(ctx, orderId)
 	if !valid {
+		return
+	}
+	shardKey := resp.UserId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "cancelPayment: error shard key %v", shardKey)
 		return
 	}
 	rdb.IncrByIfGe0XX(ctx, keyCredit(resp.UserId), resp.TotalCost)

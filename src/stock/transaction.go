@@ -24,7 +24,12 @@ func prepareCkTx(ctx *gin.Context) {
 		return
 	}
 
-	// todo: check if all item share the same machineId
+	shardKey := ctx.Param("shard_key")
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "prepareCkTx: error shard key %v", shardKey)
+		return
+	}
 
 	val, err := rdb.PrepareCkTx(ctx, req.TxId).Result()
 	if err != nil {
@@ -40,8 +45,16 @@ func prepareCkTx(ctx *gin.Context) {
 
 	// results of multiple calls should be consistent
 	// if concurrent prepare, wait
+	waitedTime := time.Duration(0)
 	for key := common.KeyTxState(req.TxId); state == common.TxPreparing; {
-		time.Sleep(10 * time.Millisecond)
+		if waitedTime > 60*1000 {
+			// 1 min passed
+			ctx.String(http.StatusInternalServerError, "prepareCkTx: wait timeout")
+			return
+		}
+		t := common.TxRand3A()
+		waitedTime += t
+		time.Sleep(t * time.Millisecond)
 		val, err := rdb.Get(ctx, key).Result()
 		if err != nil {
 			ctx.String(http.StatusInternalServerError, "prepareCkTx: wait %v", err)
@@ -76,11 +89,17 @@ func prepareCkTx(ctx *gin.Context) {
 	// new tx, sub stock
 	for i := range req.Items {
 		itemId := req.Items[i].Id
+		// check if all item share the same machineId i.e. shard key
+		if common.SnowflakeIDPickMachineIdFast(itemId) != common.SnowflakeIDPickMachineIdFast(shardKey) {
+			// just panic, errr
+			ctx.String(http.StatusInternalServerError, "prepareCkTx: mId(shardKey) != mId(itemId)")
+			return
+		}
 		amount := req.Items[i].Amount
 		val, err := rdb.PrepareCkTxMove(ctx, req.TxId, itemId, amount).Result()
 		if err == redis.Nil {
 			// out of stock
-			err := abtThenRollback(ctx, req.TxId)
+			err := abtThenRollback(ctx, rdb, req.TxId)
 			if err != nil {
 				ctx.String(http.StatusInternalServerError, "prepareCkTx: PrepareCkTxMove %v", err)
 				return
@@ -157,6 +176,13 @@ func prepareCkTx(ctx *gin.Context) {
 
 func commitCkTx(ctx *gin.Context) {
 	txId := ctx.Param("tx_id")
+	shardKey := ctx.Param("shard_key")
+
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "commitCkTx: error shard key %v", shardKey)
+		return
+	}
 
 	val, err := rdb.CommitCkTx(ctx, txId).Result()
 	if err != nil {
@@ -181,7 +207,15 @@ func commitCkTx(ctx *gin.Context) {
 
 func abortCkTx(ctx *gin.Context) {
 	txId := ctx.Param("tx_id")
-	err := abtThenRollback(ctx, txId)
+	shardKey := ctx.Param("shard_key")
+
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "abortCkTx: error shard key %v", shardKey)
+		return
+	}
+
+	err := abtThenRollback(ctx, rdb, txId)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "abortCkTx: %v", err)
 		return
@@ -190,7 +224,7 @@ func abortCkTx(ctx *gin.Context) {
 }
 
 // the error MUST be waited for even in eventual consistency
-func abtThenRollback(ctx context.Context, txId string) error {
+func abtThenRollback(ctx context.Context, rdb *redisDB, txId string) error {
 	val, err := rdb.AbortCkTx(ctx, txId).Result()
 	if err != nil {
 		return fmt.Errorf("abtThenRollback: %v", err)
@@ -207,14 +241,14 @@ func abtThenRollback(ctx context.Context, txId string) error {
 		//goland:noinspection GoBoolExpressions
 		if strictConsistency {
 			ch := make(chan string, 1)
-			rollbackStock(ctx, txId, ch)
+			rollbackStock(ctx, rdb, txId, ch)
 			errStr := <-ch
 			if errStr != "OK" {
 				return fmt.Errorf("abtThenRollback: rollbackStock %v", errStr)
 			}
 			return nil
 		}
-		go rollbackStock(context.Background(), txId, nil)
+		go rollbackStock(context.Background(), rdb, txId, nil)
 		return nil
 	case "", common.TxAborted:
 		return nil
@@ -224,7 +258,7 @@ func abtThenRollback(ctx context.Context, txId string) error {
 }
 
 // called internally by abtThenRollback
-func rollbackStock(ctx context.Context, txId string, ch chan string) {
+func rollbackStock(ctx context.Context, rdb *redisDB, txId string, ch chan string) {
 	keys := make([]string, 0)
 	cursor := uint64(0)
 	var err error

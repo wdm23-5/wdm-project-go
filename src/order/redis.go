@@ -2,13 +2,12 @@ package order
 
 import (
 	"context"
-	"fmt"
 	"github.com/redis/go-redis/v9"
 	"wdm/common"
 )
 
 type redisDB struct {
-	redis.Client
+	*redis.Client
 	rsHDecrIfGe0XX    *redis.Script
 	rsPrepareCkTx     *redis.Script
 	rsAcknowledgeCkTx *redis.Script
@@ -16,15 +15,15 @@ type redisDB struct {
 	rsAbortCkTx       *redis.Script
 }
 
-func newRedisDB() *redisDB {
+func newRedisDB(addr, password string, db int) *redisDB {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", common.MustGetEnv("REDIS_HOST"), common.MustGetEnv("REDIS_PORT")),
-		Password: common.MustGetEnv("REDIS_PASSWORD"),
-		DB:       common.MustS2I(common.MustGetEnv("REDIS_DB")),
+		Addr:     addr,
+		Password: password,
+		DB:       db,
 	})
 
 	return &redisDB{
-		Client:            *rdb,
+		Client:            rdb,
 		rsHDecrIfGe0XX:    redis.NewScript(luaHDecrIfGe0XX),
 		rsPrepareCkTx:     redis.NewScript(luaPrepareCkTx),
 		rsAcknowledgeCkTx: redis.NewScript(luaAcknowledgeCkTx),

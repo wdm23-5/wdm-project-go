@@ -1,29 +1,31 @@
 package order
 
 import (
+	"fmt"
 	"net/http"
+	"wdm/common"
 )
 
 func commitCkTxRemote(txId string, info orderInfo) {
-	// todo: group & send by id
 	stockMachineIds := make(map[string]struct{}, 4)
-	// for itemId := range info.cart {
-	// 	mId := common.SnowflakeIDPickMachineIdFast(itemId)
-	// 	stockMachineIds[mId] = struct{}{}
-	// }
-	stockMachineIds["1"] = struct{}{}
+	for itemId, amount := range info.cart {
+		if amount <= 0 {
+			continue
+		}
+		mId := common.SnowflakeIDPickMachineIdFast(itemId)
+		stockMachineIds[mId] = struct{}{}
+	}
 
 	for machineId := range stockMachineIds {
 		go func(mId string) {
-			// todo: make use of mId
-			url := stockServiceUrl + "tx/checkout/commit/" + txId
+			// hack shard key
+			url := fmt.Sprintf("%vtx/checkout/commit/%v/t1m%vs0", stockServiceUrl, txId, mId)
 			_, _ = http.Post(url, "text/plain", nil)
 		}(machineId)
 	}
 
 	go func() {
-		// todo: make use of mId
-		url := paymentServiceUrl + "tx/checkout/commit/" + txId
+		url := fmt.Sprintf("%vtx/checkout/commit/%v/%v", paymentServiceUrl, txId, info.userId)
 		_, _ = http.Post(url, "text/plain", nil)
 	}()
 }

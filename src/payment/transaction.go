@@ -19,6 +19,22 @@ func prepareCkTx(ctx *gin.Context) {
 		return
 	}
 
+	shardKey := ctx.Param("shard_key")
+	// For now, the shard key is userId.
+	// If future developer leverage other algo than
+	// identity mapping, this check should also be
+	// updated. So do the other checks under /tx.
+	if shardKey != req.Payer.Id {
+		ctx.String(http.StatusInternalServerError, "abortCkTx: shardKey != req.Payer.Id")
+		return
+	}
+
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "prepareCkTx: error shard key %v", shardKey)
+		return
+	}
+
 	val, err := rdb.PrpThenAckAbtCkTx(ctx, req.TxId, req.Payer.Id, req.Payer.Amount).Result()
 	if err == redis.Nil {
 		// not enough credit
@@ -58,6 +74,13 @@ func prepareCkTx(ctx *gin.Context) {
 
 func commitCkTx(ctx *gin.Context) {
 	txId := ctx.Param("tx_id")
+	shardKey := ctx.Param("shard_key")
+
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "commitCkTx: error shard key %v", shardKey)
+		return
+	}
 
 	val, err := rdb.CommitCkTx(ctx, txId).Result()
 	if err != nil {
@@ -82,6 +105,13 @@ func commitCkTx(ctx *gin.Context) {
 
 func abortCkTx(ctx *gin.Context) {
 	txId := ctx.Param("tx_id")
+	shardKey := ctx.Param("shard_key")
+
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "abortCkTx: error shard key %v", shardKey)
+		return
+	}
 
 	// only one field, should be fast
 	fieldValues, err := rdb.HGetAll(ctx, common.KeyTxLocked(txId)).Result()
@@ -102,6 +132,11 @@ func abortCkTx(ctx *gin.Context) {
 	// *typical go*
 	for userId = range fieldValues {
 		break
+	}
+
+	if shardKey != userId {
+		ctx.String(http.StatusInternalServerError, "abortCkTx: shardKey != userId")
+		return
 	}
 
 	val, err := rdb.AbtThenRollbackCkTx(ctx, txId, userId).Result()

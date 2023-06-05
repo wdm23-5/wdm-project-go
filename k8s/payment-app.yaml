@@ -40,15 +40,15 @@ spec:
           ports:
             - containerPort: 5000
           env:
-            - name: REDIS_HOST
-              value: "redis-payment-master"
-            - name: REDIS_PORT
-              value: "6379"
+            - name: REDIS_ADDRS
+              value: "redis-payment-master:6379"
             - name: REDIS_PASSWORD
               value: "redis"
             - name: REDIS_DB
               value: "0"
-            - name: MACHINE_ID
-              value: "1"
             - name: ORDER_SERVICE_URL
               value: "http://order-service:5000/"
+            - name: MACHINE_ID
+              value: "1/1"
+            - name: WDM_DEBUG
+              value: "1"

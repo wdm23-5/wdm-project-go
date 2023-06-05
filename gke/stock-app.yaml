@@ -30,11 +30,11 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/stock:latest
           resources:
             limits:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
             requests:
-              memory: "1Gi"
-              cpu: "1"
+              memory: "2Gi"
+              cpu: "2"
           command: ["./stock-gin"]
           args: [""]
           ports:
@@ -49,4 +49,6 @@ spec:
             - name: MACHINE_ID
               value: "1/1"
             - name: WDM_DEBUG
-              value: "1"
+              value: "0"
+            - name: GIN_MODE
+              value: "release"

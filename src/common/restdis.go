@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -16,7 +17,11 @@ type RedisCmdResponse struct {
 	Err string `json:"err"`
 }
 
-func RedisCmdHandler(ctx *gin.Context, rdb redis.UniversalClient) {
+type RedisDoAble interface {
+	Do(ctx context.Context, args ...interface{}) *redis.Cmd
+}
+
+func RedisCmdHandler(ctx *gin.Context, rdb RedisDoAble) {
 	var req RedisCmdRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.String(http.StatusBadRequest, "RedisCmdHandler: %v", err)
