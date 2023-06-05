@@ -20,11 +20,13 @@ services:
     image: order:latest
     environment:
       # - GIN_MODE=release
-      - MACHINE_ID=1
+      - REDIS_ADDRS=order-db:6379
+      - REDIS_PASSWORD=redis
+      - REDIS_DB=0
       - PAYMENT_SERVICE_URL=http://gateway:80/payment/
       - STOCK_SERVICE_URL=http://gateway:80/stock/
-    env_file:
-      - env/order_redis.env
+      - MACHINE_ID=1/1
+      - WDM_DEBUG=1
 
   stock-db:
     image: redis:latest
@@ -38,9 +40,11 @@ services:
     image: stock:latest
     environment:
       # - GIN_MODE=release
-      - MACHINE_ID=1
-    env_file:
-      - env/stock_redis.env
+      - REDIS_ADDRS=stock-db:6379
+      - REDIS_PASSWORD=redis
+      - REDIS_DB=0
+      - MACHINE_ID=1/1
+      - WDM_DEBUG=1
 
   payment-db:
     image: redis:latest
@@ -54,7 +58,9 @@ services:
     image: user:latest
     environment:
       # - GIN_MODE=release
-      - MACHINE_ID=1
+      - REDIS_ADDRS=payment-db:6379
+      - REDIS_PASSWORD=redis
+      - REDIS_DB=0
       - ORDER_SERVICE_URL=http://gateway:80/orders/
-    env_file:
-      - env/payment_redis.env
+      - MACHINE_ID=1/1
+      - WDM_DEBUG=1

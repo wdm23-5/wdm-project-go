@@ -54,9 +54,9 @@ minikube addons enable ingress
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 helm delete <name of previous redis>
-helm install redis-order bitnami/redis -f helm-config/redis-helm-values.yaml
-helm install redis-stock bitnami/redis -f helm-config/redis-helm-values.yaml
-helm install redis-payment bitnami/redis -f helm-config/redis-helm-values.yaml
+helm install redis-order bitnami/redis -f k8s/redis-helm-values.yaml
+helm install redis-stock bitnami/redis -f k8s/redis-helm-values.yaml
+helm install redis-payment bitnami/redis -f k8s/redis-helm-values.yaml
 
 # deploy
 kubectl delete -f k8s/.
@@ -81,17 +81,17 @@ helm repo update
 
 helm install nginx-ingress ingress-nginx/ingress-nginx
 
-helm install redis-order bitnami/redis -f ${prefix}helm-config/redis-helm-values.yaml
-helm install redis-stock bitnami/redis -f ${prefix}helm-config/redis-helm-values.yaml
-helm install redis-payment bitnami/redis -f ${prefix}helm-config/redis-helm-values.yaml
+helm install redis-order bitnami/redis -f ${prefix}gke/redis-helm-values.yaml
+helm install redis-stock bitnami/redis -f ${prefix}gke/redis-helm-values.yaml
+helm install redis-payment bitnami/redis -f ${prefix}gke/redis-helm-values.yaml
 # wait a moment for the databases to be ready
 
 # deploy
-kubectl apply -f ${prefix}k8s/order-app.yaml
-kubectl apply -f ${prefix}k8s/stock-app.yaml
-kubectl apply -f ${prefix}k8s/payment-app.yaml
+kubectl apply -f ${prefix}gke/order-app.yaml
+kubectl apply -f ${prefix}gke/stock-app.yaml
+kubectl apply -f ${prefix}gke/payment-app.yaml
 # wait a moment for the services to be ready
-kubectl apply -f ${prefix}k8s/ingress-service.yaml
+kubectl apply -f ${prefix}gke/ingress-service.yaml
 # wait a moment for the ingress to be ready
 
 # view external ip
