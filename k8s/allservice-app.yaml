@@ -396,7 +396,7 @@ spec:
             - name: MACHINE_ID
               value: "1"
             - name: ORDER_SERVICE_URL
-              value: "ingress-service.default.svc.cluster.local:80/orders/"
+              value: "http://ingress-service.default.svc.cluster.local:80/orders/"
 
 
    
