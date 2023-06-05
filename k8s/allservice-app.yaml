@@ -108,9 +108,9 @@ spec:
             - name: MACHINE_ID
               value: "1"
             - name: PAYMENT_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/payment/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/payment/"
             - name: STOCK_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/stock/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/stock/"
       
 ---   
 apiVersion: v1
@@ -168,9 +168,9 @@ spec:
             - name: MACHINE_ID
               value: "2"
             - name: PAYMENT_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/payment/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/payment/"
             - name: STOCK_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/stock/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/stock/"
   
 ---
 apiVersion: v1
@@ -228,9 +228,9 @@ spec:
             - name: MACHINE_ID
               value: "3"
             - name: PAYMENT_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/payment/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/payment/"
             - name: STOCK_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/stock/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/stock/"
 ---
 apiVersion: v1
 kind: Service
@@ -285,7 +285,7 @@ spec:
             - name: MACHINE_ID
               value: "1"
             - name: ORDER_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/orders/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/orders/"
 ---
 apiVersion: v1
 kind: Service
@@ -340,7 +340,7 @@ spec:
             - name: MACHINE_ID
               value: "2"
             - name: ORDER_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/orders/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/orders/"
 ---
 apiVersion: v1
 kind: Service
@@ -395,7 +395,7 @@ spec:
             - name: MACHINE_ID
               value: "1"
             - name: ORDER_SERVICE_URL
-              value: "http://ingress-service.default.svc.cluster.local:80/orders/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/orders/"
 
 
    
