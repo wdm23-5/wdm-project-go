@@ -169,9 +169,9 @@ spec:
             - name: MACHINE_ID
               value: "2"
             - name: PAYMENT_SERVICE_URL
-              value: "http://gateway:80/payment/"
+              value: "http://payment-service0"
             - name: STOCK_SERVICE_URL
-              value: "http://gateway:80/stock/"
+              value: "http://stock-service0"
   
 ---
 apiVersion: v1
@@ -229,9 +229,9 @@ spec:
             - name: MACHINE_ID
               value: "3"
             - name: PAYMENT_SERVICE_URL
-              value: "http://gateway:80/payment/"
+              value: "http://payment-service0"
             - name: STOCK_SERVICE_URL
-              value: "http://gateway:80/stock/"
+              value: "http://stock-service1"
 ---
 apiVersion: v1
 kind: Service
@@ -286,7 +286,7 @@ spec:
             - name: MACHINE_ID
               value: "1"
             - name: ORDER_SERVICE_URL
-              value: "http://gateway:80/orders/"
+              value: "http://order-service0"
 ---
 apiVersion: v1
 kind: Service
@@ -341,7 +341,7 @@ spec:
             - name: MACHINE_ID
               value: "2"
             - name: ORDER_SERVICE_URL
-              value: "http://gateway:80/orders/"
+              value: "http://order-service1"
 ---
 apiVersion: v1
 kind: Service
@@ -396,7 +396,7 @@ spec:
             - name: MACHINE_ID
               value: "1"
             - name: ORDER_SERVICE_URL
-              value: "http://gateway:80/orders/"
+              value: "http://order-service2"
 
 
    
