@@ -50,7 +50,7 @@ func Main() {
 	})
 
 	router.DELETE("/drop-database", func(ctx *gin.Context) {
-		rdb.FlushDB(ctx)
+		rdb.FlushAll(ctx)
 		ctx.Status(http.StatusOK)
 	})
 

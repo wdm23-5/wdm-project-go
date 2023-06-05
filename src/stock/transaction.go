@@ -40,8 +40,16 @@ func prepareCkTx(ctx *gin.Context) {
 
 	// results of multiple calls should be consistent
 	// if concurrent prepare, wait
+	waitedTime := time.Duration(0)
 	for key := common.KeyTxState(req.TxId); state == common.TxPreparing; {
-		time.Sleep(10 * time.Millisecond)
+		if waitedTime > 60*1000 {
+			// 1 min passed
+			ctx.String(http.StatusInternalServerError, "prepareCkTx: wait timeout")
+			return
+		}
+		t := common.TxRand3A()
+		waitedTime += t
+		time.Sleep(t * time.Millisecond)
 		val, err := rdb.Get(ctx, key).Result()
 		if err != nil {
 			ctx.String(http.StatusInternalServerError, "prepareCkTx: wait %v", err)

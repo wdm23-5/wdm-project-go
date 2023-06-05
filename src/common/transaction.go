@@ -1,5 +1,10 @@
 package common
 
+import (
+	"math/rand"
+	"time"
+)
+
 // always cast to string when passed to redis
 type TxState string
 
@@ -27,4 +32,22 @@ func KeyTxState(txId string) string {
 // key of the data locked by the tx
 func KeyTxLocked(txId string) string {
 	return "tx_" + txId + ":locked"
+}
+
+var rand3aIdx uint8
+var rand3a []time.Duration
+
+// fast though not so random number in [3, 10]
+// exclusive for waiting on tx state change
+func TxRand3A() time.Duration {
+	rand3aIdx++
+	return rand3a[rand3aIdx]
+}
+
+func init() {
+	rand3aIdx = 0
+	rand3a = make([]time.Duration, 1<<8)
+	for i := range rand3a {
+		rand3a[i] = time.Duration(3 + rand.Int63n(8))
+	}
 }
