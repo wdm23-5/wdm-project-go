@@ -2,7 +2,6 @@ package payment
 
 import (
 	"context"
-	"fmt"
 	"github.com/redis/go-redis/v9"
 	"wdm/common"
 )
@@ -15,11 +14,11 @@ type redisDB struct {
 	rsAbtThenRollbackCkTx *redis.Script
 }
 
-func newRedisDB() *redisDB {
+func newRedisDB(addr, password string, db int) *redisDB {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", common.MustGetEnv("REDIS_HOST"), common.MustGetEnv("REDIS_PORT")),
-		Password: common.MustGetEnv("REDIS_PASSWORD"),
-		DB:       common.MustS2I(common.MustGetEnv("REDIS_DB")),
+		Addr:     addr,
+		Password: password,
+		DB:       db,
 	})
 
 	return &redisDB{

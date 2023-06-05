@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -80,25 +79,6 @@ func MakeSnowflakeID(sid string) (SnowflakeID, error) {
 		return SnowflakeID{}, snowflakeIDError
 	}
 	return SnowflakeID{timestamp: timestamp, machineId: uint16(machineId), sequence: uint16(sequence)}, nil
-}
-
-// faster but not 100% safe
-func SnowflakeIDPickMachineIdFast(sid string) string {
-	sb := strings.Builder{}
-	start := false
-	for _, ru := range sid {
-		if ru == 'm' {
-			start = true
-			continue
-		}
-		if ru == 's' {
-			break
-		}
-		if start {
-			sb.WriteRune(ru)
-		}
-	}
-	return sb.String()
 }
 
 // since redis stores int as string, this implementation directly uses string as id

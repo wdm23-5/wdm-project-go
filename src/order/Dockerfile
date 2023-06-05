@@ -7,6 +7,6 @@ COPY main/order.go main/order.go
 COPY order order
 COPY go.mod go.sum ./
 
-RUN go build -v -o order-gin main/order.go
+RUN go build -ldflags="-s -w" -v -o order-gin main/order.go
 
 EXPOSE 5000

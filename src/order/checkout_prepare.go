@@ -15,7 +15,7 @@ import (
 	"wdm/common"
 )
 
-func prepareCkTxLocal(ctx *gin.Context, txId, orderId string) (locked bool, info orderInfo, err error) {
+func prepareCkTxLocal(ctx *gin.Context, rdb *redisDB, txId, orderId string) (locked bool, info orderInfo, err error) {
 	val, err := rdb.PrepareCkTx(ctx, txId, orderId).Result()
 	if err == redis.Nil {
 		return
@@ -115,9 +115,7 @@ func prepareCkTxStock(txId string, cart map[string]int) (price int, err error) {
 		if amount <= 0 {
 			continue
 		}
-		// todo: group & send by id
-		// mId := common.SnowflakeIDPickMachineIdFast(itemId)
-		mId := "1"
+		mId := common.SnowflakeIDPickMachineIdFast(itemId)
 		req := requests[mId]
 		if req == nil {
 			req = &common.ItemTxPrpRequest{TxId: txId, Items: make([]common.IdAmountPair, 0, 8)}
@@ -162,8 +160,7 @@ func prepareCkTxStockSendRequests(txId string, requests map[string]*common.ItemT
 				errCh <- err.Error()
 				return
 			}
-			// todo: make use of mId
-			url := stockServiceUrl + "tx/checkout/prepare/" + txId
+			url := fmt.Sprintf("%vtx/checkout/prepare/%v/t1m%vs0", stockServiceUrl, txId, mId)
 			resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
 			if abort.Load() {
 				errCh <- "abort"
@@ -224,9 +221,7 @@ func prepareCkTxPayment(txId, userId string, price int) error {
 	if err != nil {
 		return fmt.Errorf("prepareCkTxPayment: %v", err)
 	}
-	// todo: make use of mId
-	// mId := common.SnowflakeIDPickMachineIdFast(userId)
-	url := paymentServiceUrl + "tx/checkout/prepare/" + txId
+	url := fmt.Sprintf("%vtx/checkout/prepare/%v/%v", paymentServiceUrl, txId, userId)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return fmt.Errorf("prepareCkTxPayment: post %v", err)

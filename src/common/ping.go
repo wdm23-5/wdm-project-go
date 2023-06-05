@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-type CmdPingAble interface {
+type RedisPingAble interface {
 	Ping(ctx context.Context) *redis.StatusCmd
 }
 
-func GinPingHandler(ctx *gin.Context, name string, snow *SnowflakeGenerator, rdb CmdPingAble) {
+func GinPingHandler(ctx *gin.Context, name string, snow *SnowflakeGenerator, rdb RedisPingAble) {
 	sb := strings.Builder{}
 	sb.WriteString(NowString())
 	sb.WriteString(" ")

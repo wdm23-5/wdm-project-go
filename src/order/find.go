@@ -87,7 +87,12 @@ func findOrder(ctx *gin.Context) {
 	})
 }
 
-func loadOrderInfo(ctx *gin.Context, orderId string) (info orderInfo, err error) {
+func loadOrderInfo(ctx context.Context, orderId string) (info orderInfo, err error) {
+	rdb := srdb.Route(orderId)
+	if rdb == nil {
+		err = fmt.Errorf("error shard key %v", orderId)
+		return
+	}
 	pipe := rdb.TxPipeline()
 	userIdCmd := pipe.Get(ctx, keyUserId(orderId))
 	paidCmd := pipe.Get(ctx, keyPaid(orderId))
@@ -126,6 +131,10 @@ func loadOrderInfo(ctx *gin.Context, orderId string) (info orderInfo, err error)
 // prices for hot products are cached
 func getItemPrice(ctx context.Context, itemId string) (price int, err error) {
 	key := "item_" + itemId + ":price"
+	rdb := srdb.Route(itemId)
+	if rdb == nil {
+		return 0, fmt.Errorf("getItemPrice: error shard key %v", itemId)
+	}
 	val, err := rdb.Get(ctx, key).Result()
 	if err == redis.Nil {
 		// no such item in cache
@@ -133,7 +142,7 @@ func getItemPrice(ctx context.Context, itemId string) (price int, err error) {
 		if err != nil {
 			return 0, fmt.Errorf("getItemPrice: %v", err)
 		}
-		// todo: limit size growth with lfu
+		// size growth can be better limited with lfu
 		rdb.Set(ctx, key, item.Price, 5*time.Minute)
 		return item.Price, nil
 	}
@@ -148,7 +157,6 @@ func getItemPrice(ctx context.Context, itemId string) (price int, err error) {
 }
 
 func getItemFromRemote(itemId string) (data common.FindItemResponse, err error) {
-	// todo: make use of mId
 	resp, err := http.Get(stockServiceUrl + "find/" + itemId)
 	if err != nil {
 		err = fmt.Errorf("getItemFromRemote: post %v", err)

@@ -20,7 +20,7 @@
   For simplicity, the dbs are required to be the same.
 
 - `MACHINE_ID`: `1/3`  
-  Index of machine (ie k8s deployment of the same image) slash number of machines. Index starts from 1. Note that the default hash is a simple identical mapping from machine id to redis shard id, thus requiring the number of machines identical to that of redis databases. If they disagree, you should implement your own hashing algorithm.
+  Index of machine (ie k8s deployment of the same image) slash number of machines. Index starts from 1. Note that the default routing is a simple identical mapping from machine id to redis shard id, thus requiring the number of machines identical to that of redis databases. If they disagree, you should implement your own hashing algorithm.
 
 - `WDM_DEBUG`: `1` or `0`  
 
@@ -84,12 +84,15 @@ helm install nginx-ingress ingress-nginx/ingress-nginx
 helm install redis-order bitnami/redis -f ${prefix}helm-config/redis-helm-values.yaml
 helm install redis-stock bitnami/redis -f ${prefix}helm-config/redis-helm-values.yaml
 helm install redis-payment bitnami/redis -f ${prefix}helm-config/redis-helm-values.yaml
+# wait a moment for the databases to be ready
 
 # deploy
 kubectl apply -f ${prefix}k8s/order-app.yaml
 kubectl apply -f ${prefix}k8s/stock-app.yaml
 kubectl apply -f ${prefix}k8s/payment-app.yaml
+# wait a moment for the services to be ready
 kubectl apply -f ${prefix}k8s/ingress-service.yaml
+# wait a moment for the ingress to be ready
 
 # view external ip
 echo $(kubectl get ingress ingress-service -ojson | jq -r '.status.loadBalancer.ingress[].ip')

@@ -17,6 +17,13 @@ func createItem(ctx *gin.Context) {
 	}
 	itemId := snowGen.Next().String()
 
+	shardKey := itemId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "createItem: error shard key %v", shardKey)
+		return
+	}
+
 	pipe := rdb.TxPipeline()
 	pipe.Set(ctx, keyPrice(itemId), price, 0)
 	pipe.Set(ctx, keyStock(itemId), 0, 0)
@@ -31,6 +38,13 @@ func createItem(ctx *gin.Context) {
 
 func findItem(ctx *gin.Context) {
 	itemId := ctx.Param("item_id")
+
+	shardKey := itemId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "findItem: error shard key %v", shardKey)
+		return
+	}
 
 	pipe := rdb.TxPipeline()
 	priceCmd := pipe.Get(ctx, keyPrice(itemId))
@@ -84,6 +98,13 @@ func addStock(ctx *gin.Context) {
 		return
 	}
 
+	shardKey := itemId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "addStock: error shard key %v", shardKey)
+		return
+	}
+
 	_, err = rdb.IncrByIfGe0XX(ctx, keyStock(itemId), amount).Result()
 	if err == redis.Nil {
 		ctx.String(http.StatusNotFound, itemId)
@@ -102,6 +123,13 @@ func removeStock(ctx *gin.Context) {
 	amount, err := strconv.Atoi(amountStr)
 	if err != nil {
 		ctx.String(http.StatusMethodNotAllowed, "removeStock: %v", err)
+		return
+	}
+
+	shardKey := itemId
+	rdb := srdb.Route(shardKey)
+	if rdb == nil {
+		ctx.String(http.StatusPreconditionFailed, "removeStock: error shard key %v", shardKey)
 		return
 	}
 
