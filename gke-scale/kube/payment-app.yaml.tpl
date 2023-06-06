@@ -47,7 +47,7 @@ spec:
             - name: REDIS_DB
               value: "0"
             - name: ORDER_SERVICE_URL
-              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/order/"
+              value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/orders/"
             - name: MACHINE_ID
               value: "${THIS_ID}/1"
             - name: WDM_DEBUG
