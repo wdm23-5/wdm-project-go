@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: payment-service
+  name: payment-service-${THIS_ID}
 spec:
   type: ClusterIP
   selector:
-    component: payment
+    component: payment-${THIS_ID}
   ports:
     - port: 5000
       name: http
@@ -14,19 +14,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: payment-deployment
+  name: payment-deployment-${THIS_ID}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      component: payment
+      component: payment-${THIS_ID}
   template:
     metadata:
       labels:
-        component: payment
+        component: payment-${THIS_ID}
     spec:
       containers:
-        - name: payment
+        - name: payment-${THIS_ID}
           image: ghcr.io/wdm23-5/wdm-project-go/payment:latest
           resources:
             limits:
@@ -41,7 +41,7 @@ spec:
             - containerPort: 5000
           env:
             - name: REDIS_ADDRS
-              value: "redis-payment-master:6379"
+              value: "redis-payment-1-master:6379"
             - name: REDIS_PASSWORD
               value: "redis"
             - name: REDIS_DB
@@ -49,7 +49,7 @@ spec:
             - name: ORDER_SERVICE_URL
               value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/order/"
             - name: MACHINE_ID
-              value: "1/1"
+              value: "${THIS_ID}/1"
             - name: WDM_DEBUG
               value: "0"
             - name: GIN_MODE
