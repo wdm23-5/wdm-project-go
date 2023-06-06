@@ -1,11 +1,14 @@
 helm install nginx-ingress ingress-nginx/ingress-nginx
 
+helm delete redis-order-1 redis-order-2 redis-order-3
 helm install redis-order-1 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
 helm install redis-order-2 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
 helm install redis-order-3 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
 
+helm delete redis-stock-1
 helm install redis-stock-1 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
 
+helm delete redis-payment-1
 helm install redis-payment-1 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
 
 curl -s ${prefix}gke-scale/kube/order-app.yaml.tpl | THIS_ID=1 envsubst | kubectl apply -f -
