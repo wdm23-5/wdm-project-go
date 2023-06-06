@@ -33,6 +33,10 @@ cd test
 pip install -r requirements.txt
 python test_microservices.py
 ```
+to do the correctness test.
+
+To perform consistency test and stress test, see [wdm-project-benchmark](https://github.com/wdm23-5/wdm-project-benchmark).
+
 
 
 ## Deployment
@@ -53,7 +57,9 @@ minikube addons enable ingress
 # helm chart
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm delete <name of previous redis>
+helm delete redis-order
+helm delete redis-stock
+helm delete redis-payment
 helm install redis-order bitnami/redis -f k8s/redis-helm-values.yaml
 helm install redis-stock bitnami/redis -f k8s/redis-helm-values.yaml
 helm install redis-payment bitnami/redis -f k8s/redis-helm-values.yaml
