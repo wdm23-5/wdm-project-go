@@ -60,13 +60,13 @@ helm repo update
 helm delete redis-order
 helm delete redis-stock
 helm delete redis-payment
-helm install redis-order bitnami/redis -f k8s/redis-helm-values.yaml
-helm install redis-stock bitnami/redis -f k8s/redis-helm-values.yaml
-helm install redis-payment bitnami/redis -f k8s/redis-helm-values.yaml
+helm install redis-order bitnami/redis -f k8s/helm/redis-helm-values.yaml
+helm install redis-stock bitnami/redis -f k8s/helm/redis-helm-values.yaml
+helm install redis-payment bitnami/redis -f k8s/helm/redis-helm-values.yaml
 
 # deploy
-kubectl delete -f k8s/.
-kubectl apply -f k8s/.
+kubectl delete -f k8s/kube/.
+kubectl apply -f k8s/kube/.
 
 # test
 minikube tunnel
@@ -87,19 +87,21 @@ helm repo update
 
 helm install nginx-ingress ingress-nginx/ingress-nginx
 
-helm install redis-order bitnami/redis -f ${prefix}gke/redis-helm-values.yaml
-helm install redis-stock bitnami/redis -f ${prefix}gke/redis-helm-values.yaml
-helm install redis-payment bitnami/redis -f ${prefix}gke/redis-helm-values.yaml
+helm install redis-order bitnami/redis -f ${prefix}gke/helm/redis-helm-values.yaml
+helm install redis-stock bitnami/redis -f ${prefix}gke/helm/redis-helm-values.yaml
+helm install redis-payment bitnami/redis -f ${prefix}gke/helm/redis-helm-values.yaml
 # wait a moment for the databases to be ready
 
 # deploy
-kubectl apply -f ${prefix}gke/order-app.yaml
-kubectl apply -f ${prefix}gke/stock-app.yaml
-kubectl apply -f ${prefix}gke/payment-app.yaml
+kubectl apply -f ${prefix}gke/kube/order-app.yaml
+kubectl apply -f ${prefix}gke/kube/stock-app.yaml
+kubectl apply -f ${prefix}gke/kube/payment-app.yaml
 # wait a moment for the services to be ready
-kubectl apply -f ${prefix}gke/ingress-service.yaml
+kubectl apply -f ${prefix}gke/kube/ingress-service.yaml
 # wait a moment for the ingress to be ready
 
 # view external ip
 echo $(kubectl get ingress ingress-service -ojson | jq -r '.status.loadBalancer.ingress[].ip')
 ```
+
+If you want to deploy the project at scale, check out the scripts under `gke-scale`.

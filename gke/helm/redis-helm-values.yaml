@@ -1,0 +1,19 @@
+auth:
+  password: redis
+master:
+  disableCommands: []
+  persistence:
+    size: 4Gi
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 2
+replica:
+  disableCommands: []
+  replicaCount: 0
+  persistence:
+    size: 4Gi
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 1
