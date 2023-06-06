@@ -30,11 +30,11 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/payment:latest
           resources:
             limits:
-              memory: "2Gi"
-              cpu: "2"
+              memory: "1Gi"
+              cpu: "1"
             requests:
-              memory: "2Gi"
-              cpu: "2"
+              memory: "1Gi"
+              cpu: "1"
           command: ["./payment-gin"]
           args: [""]
           ports:
