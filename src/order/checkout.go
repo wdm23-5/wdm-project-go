@@ -17,11 +17,6 @@ func checkoutOrder(ctx *gin.Context) {
 	// this line of code should be changed accordingly.
 	txId := snowGen.Next().String()
 
-	// In current impl, we can only do orderId -> txId but not
-	// the reverse unless we scan the whole sharded database.
-	// In fact, we can save the information in KeyTxLocked since
-	// it is not used yet.
-	// todo: save txId -> (orderId, userId)
 	rdb := srdb.Route(orderId)
 	if rdb == nil {
 		ctx.String(http.StatusPreconditionFailed, "checkoutOrder: error shard key %v", orderId)
@@ -112,7 +107,10 @@ func checkoutOrder(ctx *gin.Context) {
 
 	// tx acked, start committing
 
-	// todo: use message queue to guarantee delivery. return directly after message queue ok
+	// todo: use message queue to guarantee delivery
+	// in our tx pattern it is not required to guarantee commit though
+	// but abort should be guaranteed
+	// return immediately after message queue ok
 	go commitCkTxRemote(txId, info)
 
 	_, err = rdb.CommitCkTx(ctx, txId, orderId).Result()
