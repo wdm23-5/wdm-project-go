@@ -1,5 +1,8 @@
 # Web-scale Data Management Project
 
+## Slides
+[Slides](https://docs.google.com/presentation/d/1nz9gV4Jh8lg4LGen0oAvFr0xh2qfgl8t/) for the presentation.
+
 ## Design
 
 
