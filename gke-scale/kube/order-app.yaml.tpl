@@ -1,16 +1,3 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: order-service-${THIS_ID}
-spec:
-  type: ClusterIP
-  selector:
-    component: order-${THIS_ID}
-  ports:
-    - port: 5000
-      name: http
-      targetPort: 5000
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,6 +10,7 @@ spec:
   template:
     metadata:
       labels:
+        app: order-app
         component: order-${THIS_ID}
     spec:
       containers:
@@ -30,7 +18,7 @@ spec:
           image: ghcr.io/wdm23-5/wdm-project-go/order:latest
           resources:
             limits:
-              memory: "1Gi"
+              memory: "2Gi"
               cpu: "1"
             requests:
               memory: "1Gi"
@@ -41,7 +29,7 @@ spec:
             - containerPort: 5000
           env:
             - name: REDIS_ADDRS
-              value: "redis-order-1-master:6379,redis-order-2-master:6379,redis-order-3-master:6379"
+              value: "redis-order-1-master:6379,redis-order-2-master:6379"
             - name: REDIS_PASSWORD
               value: "redis"
             - name: REDIS_DB
@@ -51,7 +39,7 @@ spec:
             - name: STOCK_SERVICE_URL
               value: "http://nginx-ingress-ingress-nginx-controller.default.svc.cluster.local:80/stock/"
             - name: MACHINE_ID
-              value: "${THIS_ID}/3"
+              value: "${THIS_ID}/2"
             - name: WDM_DEBUG
               value: "0"
             - name: GIN_MODE

@@ -13,36 +13,65 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: order-service-1
+                name: order-service-lb
                 port:
                   number: 5000
-          - path: /orders/?(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: order-service-2
-                port:
-                  number: 5000
-          - path: /orders/?(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: order-service-3
-                port:
-                  number: 5000
-
           - path: /stock/?(.*)
             pathType: Prefix
             backend:
               service:
-                name: stock-service-1
+                name: stock-service-lb
                 port:
                   number: 5000
-
           - path: /payment/?(.*)
             pathType: Prefix
             backend:
               service:
-                name: payment-service-1
+                name: payment-service-lb
                 port:
                   number: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service-lb
+  annotations:
+    networking.gke.io/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  selector:
+    app: order-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stock-service-lb
+  annotations:
+    networking.gke.io/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  selector:
+    app: stock-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service-lb
+  annotations:
+    networking.gke.io/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  selector:
+    app: payment-app

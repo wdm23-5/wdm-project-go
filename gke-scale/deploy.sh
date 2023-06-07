@@ -1,22 +1,31 @@
-helm install nginx-ingress ingress-nginx/ingress-nginx
+git clone https://github.com/wdm23-5/wdm-project-go.git
+cd wdm-project-go
 
-helm delete redis-order-1 redis-order-2 redis-order-3
-helm install redis-order-1 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
-helm install redis-order-2 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
-helm install redis-order-3 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
 
-helm delete redis-stock-1
-helm install redis-stock-1 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
+helm install nginx-ingress ingress-nginx/ingress-nginx -f gke-scale/helm/nginx-helm-values.yaml
 
-helm delete redis-payment-1
-helm install redis-payment-1 bitnami/redis -f ${prefix}gke-scale/helm/redis-helm-values.yaml
+helm install redis-order-1 bitnami/redis -f gke-scale/helm/redis-helm-values.yaml
+helm install redis-order-2 bitnami/redis -f gke-scale/helm/redis-helm-values.yaml
 
-curl -s ${prefix}gke-scale/kube/order-app.yaml.tpl | THIS_ID=1 envsubst | kubectl apply -f -
-curl -s ${prefix}gke-scale/kube/order-app.yaml.tpl | THIS_ID=2 envsubst | kubectl apply -f -
-curl -s ${prefix}gke-scale/kube/order-app.yaml.tpl | THIS_ID=3 envsubst | kubectl apply -f -
+helm install redis-stock-1 bitnami/redis -f gke-scale/helm/redis-helm-values.yaml
+helm install redis-stock-2 bitnami/redis -f gke-scale/helm/redis-helm-values.yaml
 
-curl -s ${prefix}gke-scale/kube/stock-app.yaml.tpl | THIS_ID=1 envsubst | kubectl apply -f -
+helm install redis-payment-1 bitnami/redis -f gke-scale/helm/redis-helm-values.yaml
+helm install redis-payment-2 bitnami/redis -f gke-scale/helm/redis-helm-values.yaml
 
-curl -s ${prefix}gke-scale/kube/payment-app.yaml.tpl | THIS_ID=1 envsubst | kubectl apply -f -
+# remember to change the env var if you change the name/number of services (see readme)
 
-kubectl apply -f ${prefix}gke-scale/kube/ingress-service.yaml
+THIS_ID=1 envsubst < gke-scale/kube/order-app.yaml.tpl | kubectl apply -f -
+THIS_ID=2 envsubst < gke-scale/kube/order-app.yaml.tpl | kubectl apply -f -
+
+THIS_ID=1 envsubst < gke-scale/kube/stock-app.yaml.tpl | kubectl apply -f -
+THIS_ID=2 envsubst < gke-scale/kube/stock-app.yaml.tpl | kubectl apply -f -
+
+THIS_ID=1 envsubst < gke-scale/kube/payment-app.yaml.tpl | kubectl apply -f -
+THIS_ID=2 envsubst < gke-scale/kube/payment-app.yaml.tpl | kubectl apply -f -
+
+kubectl delete -A ValidatingWebhookConfiguration nginx-ingress-ingress-nginx-admission
+kubectl apply -f gke-scale/kube/ingress-service.yaml
